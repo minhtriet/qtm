@@ -1,0 +1,4 @@
+pyscf
+pennylane
+jupyterlab
+openfermion
