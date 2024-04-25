@@ -2,3 +2,4 @@ pyscf
 pennylane
 jupyterlab
 openfermion
+openfermionpyscf
