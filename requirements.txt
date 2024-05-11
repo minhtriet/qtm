@@ -3,3 +3,6 @@ pennylane
 jupyterlab
 openfermion
 openfermionpyscf
+ipywidgets
+ase
+nglview
