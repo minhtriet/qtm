@@ -6,3 +6,4 @@ openfermionpyscf
 ipywidgets
 ase
 nglview
+rdkit
