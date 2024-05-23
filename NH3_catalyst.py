@@ -184,16 +184,16 @@ def circuit(params, hf_state, singles, doubles, wires):
                          doubles=doubles)
     return qml.expval(H)
 
-hf_state = qchem.hf_state(active_electrons, num_qubits)
-singles, doubles = qchem.excitations(active_electrons, num_qubits)
 
 
 # In[22]:
-
+# todo run a Hamiltonian here first to get the parameters singles, doubles, hf_state
 
 def loss_f(thetas, coords):
     H, qubits = hamiltonian_from_coords()
     num_qubits = len(H.wires)
+    hf_state = qchem.hf_state(active_electrons, num_qubits)
+    singles, doubles = qchem.excitations(active_electrons, num_qubits)
     dev = qml.device("lightning.qubit", num_qubits)
     qnode = qml.QNode(circuit, dev)
     return qnode(thetas, hf_state, singles, doubles, H.wires)
@@ -206,7 +206,6 @@ def loss_f(thetas, coords):
 
 def optimize():
     # store the values of the cost function
-    
     thetas = np.random.normal(0, np.pi, len(singles) + len(doubles))
     nh2_coords = nh2_n + nh2_h1 + nh2_h2
     conv_tol = 1e-6
