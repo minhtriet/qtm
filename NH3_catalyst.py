@@ -177,7 +177,7 @@ def hamiltonian_from_coords(coords):
 
 
 
-def circuit(params, hf_state, singles, doubles, wires):
+def circuit(H, params, hf_state, singles, doubles, wires):
     qml.AllSinglesDoubles(hf_state=hf_state, weights=params, 
                          wires=wires,
                          singles=singles,
@@ -187,16 +187,18 @@ def circuit(params, hf_state, singles, doubles, wires):
 
 
 # In[22]:
-# todo run a Hamiltonian here first to get the parameters singles, doubles, hf_state
+def prepare_H(coords):
+    H, qubits = hamiltonian_from_coords(coords)
+    n_qubits = len(H.wires)
+    singles, doubles = qchem.excitations(active_electrons, n_qubits)
+    return H, n_qubits,singles, doubles
 
 def loss_f(thetas, coords):
-    H, qubits = hamiltonian_from_coords()
-    num_qubits = len(H.wires)
-    hf_state = qchem.hf_state(active_electrons, num_qubits)
-    singles, doubles = qchem.excitations(active_electrons, num_qubits)
-    dev = qml.device("lightning.qubit", num_qubits)
+    H, n_qubits, singles, doubles = prepare_H(coords)
+    hf_state = qchem.hf_state(active_electrons, n_qubits)
+    dev = qml.device("lightning.qubit", n_qubits)
     qnode = qml.QNode(circuit, dev)
-    return qnode(thetas, hf_state, singles, doubles, H.wires)
+    return qnode(H, thetas, hf_state, singles, doubles, H.wires)
 
 
 # #### Optimize 
@@ -205,13 +207,15 @@ def loss_f(thetas, coords):
 
 
 def optimize():
+    # prepare for the 1st run
+    nh2_coords = nh2_n + nh2_h1 + nh2_h2
+    H, n_qubits, singles, doubles = prepare_H(nh2_coords)
     # store the values of the cost function
     thetas = np.random.normal(0, np.pi, len(singles) + len(doubles))
-    nh2_coords = nh2_n + nh2_h1 + nh2_h2
     conv_tol = 1e-6
     max_iterations = 100
     opt = optax.sgd(learning_rate=0.4)
-    energy = [loss_f(thetas)]
+    energy = [loss_f(thetas, nh2_coords)]
 
     # store the values of the circuit parameter
     angle = [thetas]
@@ -222,7 +226,7 @@ def optimize():
     for n in range(max_iterations):
         # Optimize the circuit parameters        
         thetas.requires_grad = True
-        coordinates.requires_grad = False
+        nh2_coords.requires_grad = False
         grad_thetas, _ = jax.grad(loss_f)(thetas, nh2_coords)
         updates, opt_thetas_state = opt.update(grad_thetas, opt_thetas_state)
         thetas = optax.apply_updates(thetas, updates)
