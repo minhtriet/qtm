@@ -208,7 +208,7 @@ def loss_f(thetas, coords):
 
 def optimize():
     # prepare for the 1st run
-    nh2_coords = nh2_n + nh2_h1 + nh2_h2
+    nh2_coords = np.array(nh2_n + nh2_h1 + nh2_h2)
     H, n_qubits, singles, doubles = prepare_H(nh2_coords)
     # store the values of the cost function
     thetas = np.random.normal(0, np.pi, len(singles) + len(doubles))
