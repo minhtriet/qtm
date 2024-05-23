@@ -7,3 +7,5 @@ ipywidgets
 ase
 nglview
 rdkit
+jax
+optax
