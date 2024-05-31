@@ -198,22 +198,33 @@ opt_x = qml.GradientDescentOptimizer(stepsize=0.8)
 
 def finite_diff(f, x, delta=0.01):
     """Compute the central-difference finite difference of a function
-    x is meant to be the coordinates, thetas is the rotational angels
+    x: coordinates, thetas is the rotational angles
     """
     gradient = []
-
+    n_qubits, singles, doubles = [], [], []
     for i in range(len(x)):
         shift = np.zeros_like(x)
         shift[i] += 0.5 * delta
-        res = (f(x + shift)[0] - f(x - shift)[0]) * delta**-1  # [0] because it corresponds to the Hamiltonian
+        right_shift = f(x + shift)
+        left_shift = f(x - shift)
+        res = (right_shift[0] - left_shift[0]) * delta**-1  # [0] because it corresponds to the Hamiltonian
         gradient.append(res)
+        print(res)
+        # appending auxiliary params
+        assert right_shift[1] == left_shift[1]  # equals number of qubits
+        assert right_shift[2] == left_shift[2]  # equals number of single gates
+        assert right_shift[3] == left_shift[3]  # equals number of double gates
+        n_qubits.append(right_shift[1])
+        singles.append(right_shift[2])
+        doubles.append(right_shift[3])
 
-    return gradient
+    return gradient, (n_qubits, singles, doubles)
 
 
 def grad_x(params, x):
-    grad_h = finite_diff(prepare_H, x)
-    grad = [circuit(obs, params) for obs in grad_h]
+    grad_h, auxiliary = finite_diff(prepare_H, x)
+    n_qubits, singles, doubles = auxiliary
+    grad = [circuit(obs, params, n_qubits[i], singles[i], doubles[i]) for i, obs in enumerate(grad_h)]
     return np.array(grad)
 
 
