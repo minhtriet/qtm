@@ -197,19 +197,21 @@ opt_x = qml.GradientDescentOptimizer(stepsize=0.8)
 
 
 def finite_diff(f, x, delta=0.01):
-    """Compute the central-difference finite difference of a function"""
+    """Compute the central-difference finite difference of a function
+    x is meant to be the coordinates, thetas is the rotational angels
+    """
     gradient = []
 
     for i in range(len(x)):
         shift = np.zeros_like(x)
         shift[i] += 0.5 * delta
-        res = (f(x + shift) - f(x - shift)) * delta**-1
+        res = (f(x + shift)[0] - f(x - shift)[0]) * delta**-1  # [0] because it corresponds to the Hamiltonian
         gradient.append(res)
 
     return gradient
 
 
-def grad_x(params, x):
+def grad_x(params, thetas, x):
     grad_h = finite_diff(prepare_H, x)
     grad = [circuit(obs, params) for obs in grad_h]
     return np.array(grad)
