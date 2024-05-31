@@ -35,13 +35,8 @@ import pennylane as qml
 from pennylane import numpy as np
 from pennylane import qchem
 
-import jax
-import optax
-
 from ase import Atoms
 from ase.visualize import view
-
-import random
 
 from tqdm import tqdm
 
@@ -233,7 +228,7 @@ def loss_f(thetas, coords):
     H, n_qubits, singles, doubles = prepare_H(coords)
     hf_state = qchem.hf_state(active_electrons, n_qubits)
     dev = qml.device("lightning.qubit", n_qubits)
-    qnode = qml.QNode(circuit, dev, interface="jax")
+    qnode = qml.QNode(circuit, dev)
     return qnode(H, thetas, hf_state, singles, doubles, H.wires)
 
 
@@ -256,7 +251,6 @@ def optimize():
     
 
     # store the values of the circuit parameter
-    energy = []
     angle = []
     coords = []
     
@@ -273,22 +267,17 @@ def optimize():
         thetas.requires_grad = False
         _, nh2_coords = opt_x.step(loss_f, thetas, nh2_coords, grad_fn=grad_x)
         
-        energy.append(circuit(thetas, hf_state, singles, doubles, H.wires))
         angle.append(thetas)
         coords.append(nh2_coords)
         
 
-        if n % 1 == 0:
-            print(f"Step = {n},  Energy = {energy[-1]:.8f} Ha, {thetas}")
-
-        
-    return angle, coords, energy
+    return angle, coords
 
 
 # In[16]:
 
 
-angles, coords, energies = optimize()
+angles, coords = optimize()
 
 
 # ## Next step / meeting minute
