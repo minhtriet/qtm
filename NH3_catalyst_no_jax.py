@@ -211,7 +211,7 @@ def finite_diff(f, x, delta=0.01):
     return gradient
 
 
-def grad_x(params, thetas, x):
+def grad_x(params, x):
     grad_h = finite_diff(prepare_H, x)
     grad = [circuit(obs, params) for obs in grad_h]
     return np.array(grad)
