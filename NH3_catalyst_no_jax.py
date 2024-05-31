@@ -263,7 +263,7 @@ def optimize():
         thetas, _ = opt_theta.step(loss_f, thetas, nh2_coords)
         print(f"{time.time()-start} seconds")
         # Optimize the nuclear coordinates
-        x.requires_grad = True
+        nh2_coords.requires_grad = True
         thetas.requires_grad = False
         _, nh2_coords = opt_x.step(loss_f, thetas, nh2_coords, grad_fn=grad_x)
         
