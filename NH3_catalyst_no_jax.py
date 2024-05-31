@@ -178,7 +178,7 @@ def hamiltonian_from_coords(coords):
 
 def circuit(H, params, hf_state, singles, doubles):
     qml.AllSinglesDoubles(hf_state=hf_state, weights=params, 
-                         wires=len(H.wires),
+                         wires=H.wires,
                          singles=singles,
                          doubles=doubles)
     return qml.expval(H)
@@ -245,7 +245,6 @@ def optimize():
     
     # store the values of the cost function
     thetas = np.random.normal(0, np.pi, total_single_double_gates)
-    conv_tol = 1e-6
     max_iterations = 100
     
     
