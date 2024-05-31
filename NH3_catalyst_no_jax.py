@@ -176,9 +176,9 @@ def hamiltonian_from_coords(coords):
 # In[11]:
 
 
-def circuit(H, params, hf_state, singles, doubles, wires):
+def circuit(H, params, hf_state, singles, doubles):
     qml.AllSinglesDoubles(hf_state=hf_state, weights=params, 
-                         wires=wires,
+                         wires=len(H.wires),
                          singles=singles,
                          doubles=doubles)
     return qml.expval(H)
@@ -210,8 +210,8 @@ def finite_diff(f, x, delta=0.01):
 
 
 def grad_x(params, x):
-    grad_h = finite_diff(H, x)
-    grad = [circuit(params, obs=obs, wires=range(num_wires)) for obs in grad_h]
+    grad_h = finite_diff(prepare_H, x)
+    grad = [circuit(obs, params) for obs in grad_h]
     return np.array(grad)
 
 
@@ -229,7 +229,7 @@ def loss_f(thetas, coords):
     hf_state = qchem.hf_state(active_electrons, n_qubits)
     dev = qml.device("lightning.qubit", n_qubits)
     qnode = qml.QNode(circuit, dev)
-    return qnode(H, thetas, hf_state, singles, doubles, H.wires)
+    return qnode(H, thetas, hf_state, singles, doubles)
 
 
 # #### Optimize 
@@ -253,15 +253,15 @@ def optimize():
     # store the values of the circuit parameter
     angle = []
     coords = []
-    
 
-    for n in tqdm(range(max_iterations)):
+    for _ in tqdm(range(max_iterations)):
         # Optimize the circuit parameters
         thetas.requires_grad = True
         nh2_coords.requires_grad = False
         start = time.time()
         thetas, _ = opt_theta.step(loss_f, thetas, nh2_coords)
         print(f"{time.time()-start} seconds")
+
         # Optimize the nuclear coordinates
         nh2_coords.requires_grad = True
         thetas.requires_grad = False
