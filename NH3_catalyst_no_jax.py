@@ -224,9 +224,11 @@ def grad_x(params, x):
     n_qubits, singles, doubles = auxiliary
     hf_states = [qchem.hf_state(active_electrons, n_qubit) for n_qubit in n_qubits]
     start = time.time()
-    dev = qml.device("lightning.qubits", grad_h.wires)
-    qnode = qml.QNode(circuit, dev)
-    grad = [qnode(obs, params, hf_states[i], singles[i], doubles[i]) for i, obs in enumerate(grad_h)]
+    grad = []
+    for i, obs in enumerate(grad_h):
+        dev = qml.device("lightning.qubit", obs.wires)
+        qnode = qml.QNode(circuit, dev)
+        grad.append(qnode(obs, params, hf_states[i], singles[i], doubles[i]))
     print(f"Calculating grad_x takes {time.time() - start} seconds, {grad}")
     return np.array(grad)
 
