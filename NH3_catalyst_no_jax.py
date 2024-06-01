@@ -261,8 +261,6 @@ def optimize():
     # store the values of the cost function
     thetas = np.random.normal(0, np.pi, total_single_double_gates)
     max_iterations = 100
-    
-    
 
     # store the values of the circuit parameter
     angle = []
@@ -275,7 +273,6 @@ def optimize():
         start = time.time()
         thetas, _ = opt_theta.step(loss_f, thetas, nh2_coords)
         print(f"{time.time()-start} seconds")
-        import pdb; pdb.set_trace()
         # Optimize the nuclear coordinates
         nh2_coords.requires_grad = True
         thetas.requires_grad = False
