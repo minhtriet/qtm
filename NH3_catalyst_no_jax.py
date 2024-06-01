@@ -228,7 +228,7 @@ def grad_x(params, x):
     hf_states = [qchem.hf_state(active_electrons, n_qubit) for n_qubit in n_qubits]
     start = time.time()
     grad = [circuit(obs, params, hf_states[i], singles[i], doubles[i]) for i, obs in enumerate(grad_h)]
-    print(f"Calculating gradients takes {time.time() - start} seconds")
+    print(f"Calculating grad_x takes {time.time() - start} seconds, {grad}")
     return np.array(grad)
 
 
@@ -285,7 +285,6 @@ def optimize():
         angle.append(thetas)
         coords.append(nh2_coords)
         
-
     return angle, coords
 
 
