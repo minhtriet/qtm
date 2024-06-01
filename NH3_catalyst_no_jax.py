@@ -147,9 +147,6 @@ active_orbitals = 1 + 1 + 3   # (1s1) + (1s1) + (2p3)
 def hamiltonian_from_coords(coords):
     symbols = ["Fe","Fe","Fe","Fe","Fe", "N", "H", "H"]
     base_coords = fe_top + fe_bottom + fe_climbing + fe_bridge + fe_trough
-    # ??? base_coords is for Fe which is fixed. I am optimizing for NH2. However
-    # I haven't found a way to fix the coordinate of N, H and H. They are being
-    # individually optimized, so it can violate the coordinates of NH2
     coordinates = np.append(base_coords, coords)      # qml/autograd numpy doesn't support append
     H, qubits = qchem.molecular_hamiltonian(symbols, coordinates, method='pyscf',
                                             active_electrons=active_electrons,
@@ -227,7 +224,9 @@ def grad_x(params, x):
     n_qubits, singles, doubles = auxiliary
     hf_states = [qchem.hf_state(active_electrons, n_qubit) for n_qubit in n_qubits]
     start = time.time()
-    grad = [circuit(obs, params, hf_states[i], singles[i], doubles[i]) for i, obs in enumerate(grad_h)]
+    dev = qml.device("lightning.qubits", grad_h.wires)
+    qnode = qml.QNode(circuit, dev)
+    grad = [qnode(obs, params, hf_states[i], singles[i], doubles[i]) for i, obs in enumerate(grad_h)]
     print(f"Calculating grad_x takes {time.time() - start} seconds, {grad}")
     return np.array(grad)
 
@@ -276,11 +275,17 @@ def optimize():
         start = time.time()
         thetas, _ = opt_theta.step(loss_f, thetas, nh2_coords)
         print(f"{time.time()-start} seconds")
-
+        import pdb; pdb.set_trace()
         # Optimize the nuclear coordinates
         nh2_coords.requires_grad = True
         thetas.requires_grad = False
         _, nh2_coords = opt_x.step(loss_f, thetas, nh2_coords, grad_fn=grad_x)
+        """
+        loop for coordinate 9 coord
+           shift coordinate
+           Hamotonian
+           optmize for theta for that H 
+        """
         
         angle.append(thetas)
         coords.append(nh2_coords)
