@@ -40,6 +40,7 @@ from ase.visualize import view
 
 from tqdm import tqdm
 
+import time
 
 # According to [Fig 1. in this paper](https://pubs.rsc.org/en/content/getauthorversionpdf/c9cp01611b), the config of $Fe$ latice is
 # 
@@ -209,7 +210,6 @@ def finite_diff(f, x, delta=0.01):
         left_shift = f(x - shift)
         res = (right_shift[0] - left_shift[0]) * delta**-1  # [0] because it corresponds to the Hamiltonian
         gradient.append(res)
-        print(res)
         # appending auxiliary params
         assert right_shift[1] == left_shift[1]  # equals number of qubits
         assert right_shift[2] == left_shift[2]  # equals number of single gates
@@ -222,10 +222,13 @@ def finite_diff(f, x, delta=0.01):
 
 
 def grad_x(params, x):
+    # variational for each shift in each coordinate and see how the coordinates changes
     grad_h, auxiliary = finite_diff(prepare_H, x)
     n_qubits, singles, doubles = auxiliary
     hf_states = [qchem.hf_state(active_electrons, n_qubit) for n_qubit in n_qubits]
+    start = time.time()
     grad = [circuit(obs, params, hf_states[i], singles[i], doubles[i]) for i, obs in enumerate(grad_h)]
+    print(f"Calculating gradients takes {time.time() - start} seconds")
     return np.array(grad)
 
 
@@ -252,7 +255,6 @@ def loss_f(thetas, coords):
 
 
 def optimize():
-    import time
     # prepare for the 1st run
     nh2_coords = np.array(nh2_n + nh2_h1 + nh2_h2)    
     total_single_double_gates = 54
