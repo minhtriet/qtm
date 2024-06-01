@@ -224,7 +224,8 @@ def finite_diff(f, x, delta=0.01):
 def grad_x(params, x):
     grad_h, auxiliary = finite_diff(prepare_H, x)
     n_qubits, singles, doubles = auxiliary
-    grad = [circuit(obs, params, n_qubits[i], singles[i], doubles[i]) for i, obs in enumerate(grad_h)]
+    hf_states = [qchem.hf_state(active_electrons, n_qubit) for n_qubit in n_qubits]
+    grad = [circuit(obs, params, hf_states[i], singles[i], doubles[i]) for i, obs in enumerate(grad_h)]
     return np.array(grad)
 
 
