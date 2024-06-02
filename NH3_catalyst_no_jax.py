@@ -37,6 +37,8 @@ from pennylane import qchem
 
 from ase import Atoms
 from ase.visualize import view
+from pyscf import gto, scf, ci
+from pennylane.qchem import import_state
 
 from tqdm import tqdm
 
