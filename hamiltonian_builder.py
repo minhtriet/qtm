@@ -26,7 +26,7 @@ class HamiltonianBuilder:
     def parallel_build_hamiltonian(self, coordinates_list):
         # Function to be used with Pool.map to process coordinates in parallel
         # Initialize a multiprocessing Pool
-        with Pool(os.cpu_count()-6) as pool:
+        with Pool(os.cpu_count()) as pool:
             # Map the build_hamiltonian function to the list of coordinates
             hamiltonians = pool.map(self.partial_h, coordinates_list)
         return hamiltonians
