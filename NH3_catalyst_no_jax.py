@@ -54,6 +54,7 @@ from ase.visualize import view
 # from pennylane.qchem import import_state
 
 from tqdm import tqdm
+import psutil
 
 import qtm.chem_config as chem_config
 
@@ -204,7 +205,7 @@ def finite_diff(x, theta, delta=0.01):
             shifted_coords.append(copy.copy(x))
             i[...] += 0.5 * delta    # undo the above shift again
     logging.info("Starting the parallel")
-    with Pool(os.cpu_count()) as p:
+    with Pool(psutil.cpu_count(logical=True)) as p:
         hs = p.map(hamiltonian_from_coords, shifted_coords)
         # Each hs[i] contains the H and the qubits
     # run the circuits with the shifted coords
