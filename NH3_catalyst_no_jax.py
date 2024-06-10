@@ -12,7 +12,7 @@
 #     language: python
 #     name: python3
 # ---
-
+import copy
 # # Simulating the Harber Bosch process with quantum computing
 
 # # # ! Steps
@@ -184,10 +184,15 @@ def finite_diff(f, x, delta=0.01):
     gradient = []
     n_qubits, singles, doubles = [], [], []
 
-    shifted_coords = list(repeat(x, 2*len(x)))
-    for i in range(len(x)):
-        shifted_coords[2*i] += 0.5*delta
-        shifted_coords[2*i+1] -= 0.5*delta
+    shifted_coords = []
+    with np.nditer(x, op_flags=['readwrite']) as it:   # iterate through every element to add and minus a shift
+        for i in it:
+            i[...] +=  0.5*delta
+            shifted_coords.append(copy.copy(x))
+            i[...] -= 2 * 0.5 * delta  # 2 because we have to undo the above shift
+            shifted_coords.append(copy.copy(x))
+            i[...] +=  0.5 * delta    # undo the above shift again
+    print("Starting the parallel")
     with Pool(os.cpu_count()) as p:
         hs = p.map(hamiltonian_from_coords, shifted_coords)
     # todo edit
@@ -239,8 +244,9 @@ def loss_f(thetas, coords):
 
 def optimize():
     # prepare for the 1st run
-    nh2_coords = np.array(molecule["coords"])
-    total_single_double_gates = 54
+    adsorbate_coords = np.array(molecule["coords"])
+    _, __, singles, doubles = prepare_H(adsorbate_coords)
+    total_single_double_gates = len(singles) + len(doubles)
     
     # store the values of the cost function
     thetas = np.random.normal(0, np.pi, total_single_double_gates)
@@ -253,14 +259,14 @@ def optimize():
     for _ in tqdm(range(max_iterations)):
         # Optimize the circuit parameters
         thetas.requires_grad = True
-        nh2_coords.requires_grad = False
+        adsorbate_coords.requires_grad = False
         start = time.time()
-        thetas, _ = opt_theta.step(loss_f, thetas, nh2_coords)
+        thetas, _ = opt_theta.step(loss_f, thetas, adsorbate_coords)
         print(f"{time.time()-start} seconds")
         # Optimize the nuclear coordinates
-        nh2_coords.requires_grad = True
+        adsorbate_coords.requires_grad = True
         thetas.requires_grad = False
-        _, nh2_coords = opt_x.step(loss_f, thetas, nh2_coords, grad_fn=grad_x)
+        _, adsorbate_coords = opt_x.step(loss_f, thetas, adsorbate_coords, grad_fn=grad_x)
         """
         loop for coordinate 9 coord
            shift coordinate
@@ -269,7 +275,7 @@ def optimize():
         """
         
         angle.append(thetas)
-        coords.append(nh2_coords)
+        coords.append(adsorbate_coords)
         
     return angle, coords
 
