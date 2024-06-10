@@ -205,7 +205,7 @@ def finite_diff(x, theta, delta=0.01):
             shifted_coords.append(copy.copy(x))
             i[...] += 0.5 * delta    # undo the above shift again
     logging.info("Starting the parallel")
-    with Pool(psutil.cpu_count(logical=True)) as p:
+    with Pool(psutil.cpu_count(logical=False)) as p:
         hs = p.map(hamiltonian_from_coords, shifted_coords)
         # Each hs[i] contains the H and the qubits
     # run the circuits with the shifted coords
