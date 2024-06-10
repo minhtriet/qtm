@@ -18,6 +18,7 @@ import logging
 logger = logging.getLogger(__name__)
 FORMAT = "[%(filename)s:%(lineno)s - %(funcName)20s() ] %(message)s"
 logging.basicConfig(format=FORMAT)
+logging.getLogger().setLevel(logging.INFO)
 
 # # Simulating the Harber Bosch process with quantum computing
 
