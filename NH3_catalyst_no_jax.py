@@ -187,7 +187,6 @@ def finite_diff(x, theta, delta=0.01):
     x: coordinates, thetas is the rotational angles
     """
     gradient = []
-    n_qubits, singles, doubles = [], [], []
 
     # calculate the shifted coords
     shifted_coords = []
@@ -206,33 +205,12 @@ def finite_diff(x, theta, delta=0.01):
     for i in range(len(hs), 2):
         gradient.append( (run_circuit(hs[i][0], theta) + run_circuit(hs[i + 1][0], theta)) * delta**-1 )
 
-    return gradient, (n_qubits, singles, doubles)
-
-
-def grad_x(params, x):
-    # variational for each shift in each coordinate and see how the coordinates changes
-    grad_h, auxiliary = finite_diff(prepare_H, x)
-    n_qubits, singles, doubles = auxiliary
-    hf_states = [qchem.hf_state(active_electrons, n_qubit) for n_qubit in n_qubits]
-    start = time.time()
-    grad = []
-    for i, obs in enumerate(grad_h):
-        dev = qml.device("lightning.qubit", obs.wires)
-        qnode = qml.QNode(circuit, dev)
-        grad.append(qnode(obs, params, hf_states[i], singles[i], doubles[i]))
-    print(f"Calculating grad_x takes {time.time() - start} seconds, {grad}")
-    return np.array(grad)
-
+    return np.array(gradient)
 
 
 def loss_f(thetas, coords):
-    H, n_qubits, singles, doubles = prepare_H(coords)
-    # optimize the initial state, cisd
-    
-    hf_state = qchem.hf_state(active_electrons, n_qubits)
-    dev = qml.device("lightning.qubit", n_qubits)
-    qnode = qml.QNode(circuit, dev)
-    return qnode(H, thetas, hf_state, singles, doubles)
+    H, _ = hamiltonian_from_coords(coords)
+    return run_circuit(H, thetas)
 
 
 # #### Optimize 
@@ -261,7 +239,8 @@ def optimize():
         # Optimize the nuclear coordinates
         adsorbate_coords.requires_grad = True
         thetas.requires_grad = False
-        _, adsorbate_coords = opt_x.step(loss_f, thetas, adsorbate_coords, grad_fn=grad_x)
+        grad_x = finite_diff(adsorbate_coords, thetas, 0.01)
+        adsorbate_coords -= 0.8*grad_x
         """
         loop for coordinate 9 coord
            shift coordinate
