@@ -280,6 +280,7 @@ def optimize():
     return angle, coords
 
 if __name__ == "__main__":
+    [os.remove(hdf5) for hdf5 in os.listdir(".") if hdf5.endswith(".hdf5")]
     angles, coords = optimize()
 
 
