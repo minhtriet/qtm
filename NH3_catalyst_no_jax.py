@@ -156,16 +156,15 @@ def hamiltonian_from_coords(coords):
 # - Optimize for $\theta$
 
 # #### Create circuit
-def run_circuit(H, params, hf_state):
+def run_circuit(H, params):
     # todo cdefine circuit based on H
     dev = qml.device("lightning.qubit", wires=len(H.wires))
-
+    state = qchem.hf_state(active_electrons, len(H.wires))
+    singles, doubles = qchem.excitations(active_electrons, len(H.wires))
     @qml.qnode(dev)
-    def circuit(singles, doubles):
-        qml.AllSinglesDoubles(hf_state=hf_state, weights=params,
-                             wires=H.wires,
-                             singles=singles,
-                             doubles=doubles)
+    def circuit():
+        qml.AllSinglesDoubles(hf_state=state, weights=params,
+                             wires=H.wires, singles=singles, doubles=doubles)
         return qml.expval(H)
 
     return circuit()
@@ -183,7 +182,7 @@ opt_theta = qml.GradientDescentOptimizer(stepsize=0.4)
 opt_x = qml.GradientDescentOptimizer(stepsize=0.8)
 
 
-def finite_diff(f, x, delta=0.01):
+def finite_diff(x, theta, delta=0.01):
     """Compute the central-difference finite difference of a function
     x: coordinates, thetas is the rotational angles
     """
@@ -194,32 +193,18 @@ def finite_diff(f, x, delta=0.01):
     shifted_coords = []
     with np.nditer(x, op_flags=['readwrite']) as it:   # iterate through every element to add and minus a shift
         for i in it:
-            i[...] +=  0.5*delta
+            i[...] += 0.5*delta
             shifted_coords.append(copy.copy(x))
             i[...] -= 2 * 0.5 * delta  # 2 because we have to undo the above shift
             shifted_coords.append(copy.copy(x))
-            i[...] +=  0.5 * delta    # undo the above shift again
+            i[...] += 0.5 * delta    # undo the above shift again
     print("Starting the parallel")
     with Pool(os.cpu_count()) as p:
         hs = p.map(hamiltonian_from_coords, shifted_coords)
+        # Each hs[i] contains the H and the qubits
     # run the circuits with the shifted coords
     for i in range(len(hs), 2):
-
-    #
-    for i in range(len(x)):
-        shift = np.zeros_like(x)
-        shift[i] += 0.5 * delta
-        right_shift = f(x + shift)
-        left_shift = f(x - shift)
-        res = (right_shift[0] - left_shift[0]) * delta**-1  # [0] because it corresponds to the Hamiltonian
-        gradient.append(res)
-        # appending auxiliary params
-        assert right_shift[1] == left_shift[1]  # equals number of qubits
-        assert right_shift[2] == left_shift[2]  # equals number of single gates
-        assert right_shift[3] == left_shift[3]  # equals number of double gates
-        n_qubits.append(right_shift[1])
-        singles.append(right_shift[2])
-        doubles.append(right_shift[3])
+        gradient.append( (run_circuit(hs[i][0], theta) + run_circuit(hs[i + 1][0], theta)) * delta**-1 )
 
     return gradient, (n_qubits, singles, doubles)
 
