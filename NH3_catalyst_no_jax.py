@@ -134,9 +134,7 @@ def create_pyscf_representation(symbols, coords):
 symbols = ["Fe", "Fe", "Fe", "Fe", "Fe"] + molecule['symbols']
 
 def hamiltonian_from_coords(coords):
-    """
-    Also gives the intial state
-    """
+    logger.info(f"Creating hamiltonian {coords}")
     base_coords = fe_top + fe_bottom + fe_climbing + fe_bridge + fe_trough
     coordinates = np.append(base_coords, coords)
     start = time.time()
