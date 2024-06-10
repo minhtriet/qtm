@@ -156,13 +156,19 @@ def hamiltonian_from_coords(coords):
 # - Optimize for $\theta$
 
 # #### Create circuit
+def run_circuit(H, params, hf_state):
+    # todo cdefine circuit based on H
+    dev = qml.device("lightning.qubit", wires=len(H.wires))
 
-def circuit(H, params, hf_state, singles, doubles):
-    qml.AllSinglesDoubles(hf_state=hf_state, weights=params, 
-                         wires=H.wires,
-                         singles=singles,
-                         doubles=doubles)
-    return qml.expval(H)
+    @qml.qnode(dev)
+    def circuit(singles, doubles):
+        qml.AllSinglesDoubles(hf_state=hf_state, weights=params,
+                             wires=H.wires,
+                             singles=singles,
+                             doubles=doubles)
+        return qml.expval(H)
+
+    return circuit()
 
 
 def prepare_H(coords):
@@ -184,6 +190,7 @@ def finite_diff(f, x, delta=0.01):
     gradient = []
     n_qubits, singles, doubles = [], [], []
 
+    # calculate the shifted coords
     shifted_coords = []
     with np.nditer(x, op_flags=['readwrite']) as it:   # iterate through every element to add and minus a shift
         for i in it:
@@ -195,7 +202,10 @@ def finite_diff(f, x, delta=0.01):
     print("Starting the parallel")
     with Pool(os.cpu_count()) as p:
         hs = p.map(hamiltonian_from_coords, shifted_coords)
-    # todo edit
+    # run the circuits with the shifted coords
+    for i in range(len(hs), 2):
+
+    #
     for i in range(len(x)):
         shift = np.zeros_like(x)
         shift[i] += 0.5 * delta
