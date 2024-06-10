@@ -81,7 +81,7 @@ from itertools import repeat
 # sd_supplier = SDMolSupplier("Structure2D_COMPOUND_CID_123329.sdf")
 #
 # for mol in sd_supplier:
-#     print(rdmolfiles.MolToXYZBlock(mol))
+#     logging.info(rdmolfiles.MolToXYZBlock(mol))
 
 
 np.random.seed(17)
@@ -149,7 +149,7 @@ def hamiltonian_from_coords(coords):
     #myhf = scf.RHF(mol).run()
     #myci = ci.CISD(myhf).run()
     #wf_cisd = import_state(myci, tol=1e-1)
-    #print(f"CISD-based state vector: \n{np.round(wf_cisd.real, 4)}")
+    #logging.info(f"CISD-based state vector: \n{np.round(wf_cisd.real, 4)}")
     return H, qubits
 
 
@@ -202,14 +202,14 @@ def finite_diff(x, theta, delta=0.01):
             i[...] -= 2 * 0.5 * delta  # 2 because we have to undo the above shift
             shifted_coords.append(copy.copy(x))
             i[...] += 0.5 * delta    # undo the above shift again
-    print("Starting the parallel")
+    logging.info("Starting the parallel")
     with Pool(os.cpu_count()) as p:
         hs = p.map(hamiltonian_from_coords, shifted_coords)
         # Each hs[i] contains the H and the qubits
     # run the circuits with the shifted coords
     for i in range(len(hs), 2):
         gradient.append( (run_circuit(hs[i][0], theta) + run_circuit(hs[i + 1][0], theta)) * delta**-1 )
-    print(f"Finished the parallel, gradient {gradient}")
+    logging.info(f"Finished the parallel, gradient {gradient}")
     return np.array(gradient)
 
 
@@ -240,8 +240,8 @@ def optimize():
         adsorbate_coords.requires_grad = False
         start = time.time()
         thetas, _ = opt_theta.step(loss_f, thetas, adsorbate_coords)
-        print(f"{time.time()-start} seconds")
-        print("Done theta, starting coordinates")
+        logging.info(f"{time.time()-start} seconds")
+        logging.info("Done theta, starting coordinates")
         # Optimize the nuclear coordinates
         adsorbate_coords.requires_grad = True
         thetas.requires_grad = False
