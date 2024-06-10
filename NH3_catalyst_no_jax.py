@@ -33,6 +33,7 @@
 
 # In[1]:
 
+import time
 import os
 from multiprocessing import  Pool
 
@@ -47,9 +48,9 @@ from ase.visualize import view
 
 from tqdm import tqdm
 
-import time
+import qtm.chem_config as chem_config
 
-# According to [Fig 1. in this paper](https://pubs.rsc.org/en/content/getauthorversionpdf/c9cp01611b), the config of $Fe$ latice is
+# According to [Fig 1. in this paper](https://pubs.rsc.org/en/content/getauthorversionpdf/c9cp01611b), the config of $Fe$ lattice is
 #
 # > Fe coordinate
 # > - the top site corresponds to (1.0, 0.0, 0.50)
@@ -86,13 +87,6 @@ h2_x = np.random.uniform(0,1.1,[6])    # three values for H2
 h2_y = np.random.uniform(-0.1,1.1,[6])
 h2_z = np.random.uniform(0.2,0.6,[6])
 
-
-# 3N_NH2. NH2 is a radical, short lived https://pubchem.ncbi.nlm.nih.gov/compound/123329#section=2D-Structure
-nh2_n = [2.5369, -0.1550, 0.0000]    
-nh2_h1 = [3.0739,    0.1550,    0.0000]
-nh2_h2 = [2.0000,    0.1550,    0.0000]
-
-
 fe_top = [1.0, 0.0, 0.50]
 fe_bottom = [0.69, 0.14, 0.36]
 fe_climbing = [0.63, 0.58, 0.44]
@@ -100,11 +94,16 @@ fe_bridge = [0.7, 1.0, 0.44]
 fe_trough = [0.59, 0.5, 0.31]
 
 
+molecule = chem_config.H2
+active_electrons = molecule['active_electrons']
+active_orbitals = molecule['active_orbitals']
+electrons = molecule['electrons']
+orbitals = molecule['orbitals']
 # Let's visualize!
 
-#fe_latice = Atoms('FeFeFeFeFe', [fe_top, fe_bottom, fe_climbing, fe_bridge, fe_trough])
-fe_latice = Atoms('FeFeFeFeFeNHH', [fe_top, fe_bottom, fe_climbing, fe_bridge, fe_trough, nh2_n, nh2_h1, nh2_h2])
-view(fe_latice, viewer='ngl')
+#fe_lattice = Atoms('FeFeFeFeFe', [fe_top, fe_bottom, fe_climbing, fe_bridge, fe_trough])
+fe_lattice = Atoms(f"FeFeFeFeFe{''.join(molecule['symbols'])}", [fe_top, fe_bottom, fe_climbing, fe_bridge, fe_trough] + molecule["coords"])
+view(fe_lattice, viewer='ngl')
 
 
 # # ## ! New define Hamitonian
@@ -119,11 +118,6 @@ view(fe_latice, viewer='ngl')
 # [Source](https://discuss.pennylane.ai/t/co2-active-electrons-orbitals/1589/2)
 
 # NH2 and Fe
-# N: 1s2 2s2 2p3
-electrons = 1 + 1 + 7         # H + H + N
-orbitals = 1 + 1 + 1 + 1 + 3  # (1s1) + (1s1) + (1s2 + 2s2 + 2p3)
-active_electrons = 1 + 1 + 3  # (1s1) + (1s1) + (2p3)
-active_orbitals = 1 + 1 + 3   # (1s1) + (1s1) + (2p3)
 
 
 def create_pyscf_representation(symbols, coords):
@@ -131,8 +125,7 @@ def create_pyscf_representation(symbols, coords):
     return [[symbols[i], coords[i]] for i in range(len(symbols))]
 
 
-symbols = ["Fe", "Fe", "Fe", "Fe", "Fe", "N", "H", "H"]
-
+symbols = ["Fe", "Fe", "Fe", "Fe", "Fe"] + molecule['symbols']
 
 def hamiltonian_from_coords(coords):
     """
@@ -143,7 +136,7 @@ def hamiltonian_from_coords(coords):
     H, qubits = qchem.molecular_hamiltonian(symbols, coordinates, method='openfermion',
                                             active_electrons=active_electrons,
                                             active_orbitals=active_orbitals, 
-                                            mult=1+1) # one unpaired e
+                                            mult=1+molecule['unpaired_e'])
     # todo implement inital state
     # mol = gto.M(atom=create_pyscf_representation(symbols, coordinates))
     # perfrom restricted Hartree-Fock and then CISD
@@ -197,6 +190,7 @@ def finite_diff(f, x, delta=0.01):
         shifted_coords[2*i+1] -= 0.5*delta
     with Pool(os.cpu_count()) as p:
         hs = p.map(hamiltonian_from_coords, shifted_coords)
+    # todo edit
     for i in range(len(x)):
         shift = np.zeros_like(x)
         shift[i] += 0.5 * delta
@@ -245,7 +239,7 @@ def loss_f(thetas, coords):
 
 def optimize():
     # prepare for the 1st run
-    nh2_coords = np.array(nh2_n + nh2_h1 + nh2_h2)    
+    nh2_coords = np.array(molecule["coords"])
     total_single_double_gates = 54
     
     # store the values of the cost function
@@ -271,7 +265,7 @@ def optimize():
         loop for coordinate 9 coord
            shift coordinate
            Hamotonian
-           optmize for theta for that H 
+           optimize for theta for that H 
         """
         
         angle.append(thetas)
@@ -287,7 +281,7 @@ if __name__ == "__main__":
 #
 # ### 2nd week
 # The quantity we need to measure
-# - The intermidiate configurations
+# - The intermediate configurations
 #     - N2 bonds with Fe -> get the Hamiltonian
 #     - H2 bond with Fe -> get the Hamiltonian
 #     - N2 -> 2 N -> get the Hamiltonian
