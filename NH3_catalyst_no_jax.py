@@ -13,6 +13,12 @@
 #     name: python3
 # ---
 import copy
+import logging
+
+logger = logging.getLogger(__name__)
+FORMAT = "[%(filename)s:%(lineno)s - %(funcName)20s() ] %(message)s"
+logging.basicConfig(format=FORMAT)
+
 # # Simulating the Harber Bosch process with quantum computing
 
 # # # ! Steps
@@ -132,11 +138,13 @@ def hamiltonian_from_coords(coords):
     Also gives the intial state
     """
     base_coords = fe_top + fe_bottom + fe_climbing + fe_bridge + fe_trough
-    coordinates = np.append(base_coords, coords)      # qml/autograd numpy doesn't support append
+    coordinates = np.append(base_coords, coords)
+    start = time.time()
     H, qubits = qchem.molecular_hamiltonian(symbols, coordinates, method='openfermion',
                                             active_electrons=active_electrons,
                                             active_orbitals=active_orbitals, 
                                             mult=1+molecule['unpaired_e'])
+    logging.info(f"Finish in {time.time()-start}")
     # todo implement inital state
     # mol = gto.M(atom=create_pyscf_representation(symbols, coordinates))
     # perfrom restricted Hartree-Fock and then CISD
@@ -179,7 +187,6 @@ def prepare_H(coords):
 # ## Some manual grad calculation
 
 opt_theta = qml.GradientDescentOptimizer(stepsize=0.4)
-opt_x = qml.GradientDescentOptimizer(stepsize=0.8)
 
 
 def finite_diff(x, theta, delta=0.01):
@@ -204,7 +211,7 @@ def finite_diff(x, theta, delta=0.01):
     # run the circuits with the shifted coords
     for i in range(len(hs), 2):
         gradient.append( (run_circuit(hs[i][0], theta) + run_circuit(hs[i + 1][0], theta)) * delta**-1 )
-
+    print(f"Finished the parallel, gradient {gradient}")
     return np.array(gradient)
 
 
@@ -236,6 +243,7 @@ def optimize():
         start = time.time()
         thetas, _ = opt_theta.step(loss_f, thetas, adsorbate_coords)
         print(f"{time.time()-start} seconds")
+        print("Done theta, starting coordinates")
         # Optimize the nuclear coordinates
         adsorbate_coords.requires_grad = True
         thetas.requires_grad = False
