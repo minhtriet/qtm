@@ -42,7 +42,7 @@ logging.getLogger().setLevel(logging.INFO)
 
 import time
 import os
-from multiprocessing import  Pool
+from multiprocessing import get_context
 
 import pennylane as qml
 from pennylane import numpy as np
@@ -54,7 +54,6 @@ from ase.visualize import view
 # from pennylane.qchem import import_state
 
 from tqdm import tqdm
-import psutil
 
 import qtm.chem_config as chem_config
 
@@ -78,7 +77,7 @@ import qtm.chem_config as chem_config
 
 from rdkit.Chem import rdmolfiles, SDMolSupplier, rdmolfiles
 
-from itertools import repeat
+
 # in case we have to load from SDMol
 # sd_supplier = SDMolSupplier("Structure2D_COMPOUND_CID_123329.sdf")
 #
@@ -189,29 +188,17 @@ def prepare_H(coords):
 opt_theta = qml.GradientDescentOptimizer(stepsize=0.4)
 
 
-def finite_diff(x, theta, delta=0.01):
+def finite_diff(hs, theta, delta=0.01):
     """Compute the central-difference finite difference of a function
     x: coordinates, thetas is the rotational angles
     """
     gradient = []
 
     # calculate the shifted coords
-    shifted_coords = []
-    with np.nditer(x, op_flags=['readwrite']) as it:   # iterate through every element to add and minus a shift
-        for i in it:
-            i[...] += 0.5*delta
-            shifted_coords.append(copy.copy(x))
-            i[...] -= 2 * 0.5 * delta  # 2 because we have to undo the above shift
-            shifted_coords.append(copy.copy(x))
-            i[...] += 0.5 * delta    # undo the above shift again
-    logging.info("Starting the parallel")
-    with Pool(psutil.cpu_count(logical=False)) as p:
-        hs = p.map(hamiltonian_from_coords, shifted_coords)
-        # Each hs[i] contains the H and the qubits
     # run the circuits with the shifted coords
     for i in range(len(hs), 2):
         gradient.append( (run_circuit(hs[i][0], theta) + run_circuit(hs[i + 1][0], theta)) * delta**-1 )
-    logging.info(f"Finished the parallel, gradient {gradient}")
+    print(gradient)
     return np.array(gradient)
 
 
@@ -221,8 +208,9 @@ def loss_f(thetas, coords):
 
 
 # #### Optimize 
+if __name__ == "__main__":
+    [os.remove(hdf5) for hdf5 in os.listdir(".") if hdf5.endswith(".hdf5")]
 
-def optimize():
     # prepare for the 1st run
     adsorbate_coords = np.array(molecule["coords"])
     _, __, singles, doubles = prepare_H(adsorbate_coords)
@@ -231,6 +219,7 @@ def optimize():
     # store the values of the cost function
     thetas = np.random.normal(0, np.pi, total_single_double_gates)
     max_iterations = 100
+    delta = 0.01
 
     # store the values of the circuit parameter
     angle = []
@@ -244,27 +233,27 @@ def optimize():
         thetas, _ = opt_theta.step(loss_f, thetas, adsorbate_coords)
         logging.info(f"{time.time()-start} seconds")
         logging.info("Done theta, starting coordinates")
+
         # Optimize the nuclear coordinates
         adsorbate_coords.requires_grad = True
         thetas.requires_grad = False
-        grad_x = finite_diff(adsorbate_coords, thetas, 0.01)
+        shifted_coords = []
+        with np.nditer(adsorbate_coords, op_flags=['readwrite']) a   # iterate through every element to add and minus a shift
+            for i in it:
+                i[...] += 0.5*delta
+                shifted_coords.append(copy.copy(adsorbate_coords))
+                i[...] -= 2 * 0.5 * delta  # 2 because we have to undo the above shift
+                shifted_coords.append(copy.copy(adsorbate_coords))
+                i[...] += 0.5 * delta    # undo the above shift again
+        logging.info("Starting the parallel")
+        with get_context("spawn").Pool() as p:
+            hs = p.map(hamiltonian_from_coords, shifted_coords)
+            # Each hs[i] contains coordinates and the corresponding H
+        grad_x = finite_diff(hs, thetas, delta)
         adsorbate_coords -= 0.8*grad_x
-        """
-        loop for coordinate 9 coord
-           shift coordinate
-           Hamotonian
-           optimize for theta for that H 
-        """
         
         angle.append(thetas)
         coords.append(adsorbate_coords)
-        
-    return angle, coords
-
-if __name__ == "__main__":
-    [os.remove(hdf5) for hdf5 in os.listdir(".") if hdf5.endswith(".hdf5")]
-    angles, coords = optimize()
-
 
 # ## Next step / meeting minute
 #
