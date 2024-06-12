@@ -135,15 +135,12 @@ def create_pyscf_representation(symbols, coords):
 symbols = ["Fe", "Fe", "Fe", "Fe", "Fe"] + molecule['symbols']
 
 def hamiltonian_from_coords(coords):
-    logger.info(f"Creating hamiltonian {coords}")
     base_coords = fe_top + fe_bottom + fe_climbing + fe_bridge + fe_trough
     coordinates = np.append(base_coords, coords)
-    start = time.time()
     H, qubits = qchem.molecular_hamiltonian(symbols, coordinates, method='openfermion',
                                             active_electrons=active_electrons,
                                             active_orbitals=active_orbitals, 
                                             mult=1+molecule['unpaired_e'])
-    logging.info(f"Finish in {time.time()-start}")
     # todo implement inital state
     # mol = gto.M(atom=create_pyscf_representation(symbols, coordinates))
     # perfrom restricted Hartree-Fock and then CISD
@@ -173,9 +170,7 @@ def run_circuit(H, params):
         qml.AllSinglesDoubles(hf_state=state, weights=params,
                              wires=H.wires, singles=singles, doubles=doubles)
         return qml.expval(H)
-    result = circuit()
-    print(result)
-    return result
+    return circuit()
 
 
 def prepare_H(coords):
@@ -194,14 +189,12 @@ def finite_diff(hs, theta, delta=0.01):
     x: coordinates, thetas is the rotational angles
     """
     gradient = []
-
+    logging.info("Compute the central-difference finite difference")
     # calculate the shifted coords
     # run the circuits with the shifted coords
-    for i in range(len(hs), 2):
+    for i in tqdm(range(0, len(hs), 2)):
         grad = (run_circuit(hs[i][0], theta) + run_circuit(hs[i + 1][0], theta)) * delta**-1
-        print(grad)
         gradient.append(grad)
-    print(gradient)
     return np.array(gradient)
 
 
@@ -232,9 +225,7 @@ if __name__ == "__main__":
         # Optimize the circuit parameters
         thetas.requires_grad = True
         adsorbate_coords.requires_grad = False
-        start = time.time()
         thetas, _ = opt_theta.step(loss_f, thetas, adsorbate_coords)
-        logging.info(f"{time.time()-start} seconds")
         logging.info("Done theta, starting coordinates")
 
         # Optimize the nuclear coordinates
@@ -256,6 +247,9 @@ if __name__ == "__main__":
         
         angle.append(thetas)
         coords.append(adsorbate_coords)
+
+    print(coords)
+    print(angle)
 
 # ## Next step / meeting minute
 #
