@@ -238,14 +238,13 @@ if __name__ == "__main__":
         adsorbate_coords.requires_grad = True
         thetas.requires_grad = False
         shifted_coords = []
-        with np.nditer(adsorbate_coords, op_flags=['readwrite']) a   # iterate through every element to add and minus a shift
+        with np.nditer(adsorbate_coords, op_flags=['readwrite']) as it:    # iterate through every element to add and minus a shift
             for i in it:
                 i[...] += 0.5*delta
                 shifted_coords.append(copy.copy(adsorbate_coords))
                 i[...] -= 2 * 0.5 * delta  # 2 because we have to undo the above shift
                 shifted_coords.append(copy.copy(adsorbate_coords))
                 i[...] += 0.5 * delta    # undo the above shift again
-        logging.info("Starting the parallel")
         with get_context("spawn").Pool() as p:
             hs = p.map(hamiltonian_from_coords, shifted_coords)
             # Each hs[i] contains coordinates and the corresponding H
