@@ -164,17 +164,18 @@ def hamiltonian_from_coords(coords):
 
 # #### Create circuit
 def run_circuit(H, params):
-    # todo cdefine circuit based on H
     dev = qml.device("lightning.qubit", wires=len(H.wires))
     state = qchem.hf_state(active_electrons, len(H.wires))
     singles, doubles = qchem.excitations(active_electrons, len(H.wires))
+
     @qml.qnode(dev)
     def circuit():
         qml.AllSinglesDoubles(hf_state=state, weights=params,
                              wires=H.wires, singles=singles, doubles=doubles)
         return qml.expval(H)
-
-    return circuit()
+    result = circuit()
+    print(result)
+    return result
 
 
 def prepare_H(coords):
@@ -197,7 +198,9 @@ def finite_diff(hs, theta, delta=0.01):
     # calculate the shifted coords
     # run the circuits with the shifted coords
     for i in range(len(hs), 2):
-        gradient.append( (run_circuit(hs[i][0], theta) + run_circuit(hs[i + 1][0], theta)) * delta**-1 )
+        grad = (run_circuit(hs[i][0], theta) + run_circuit(hs[i + 1][0], theta)) * delta**-1
+        print(grad)
+        gradient.append(grad)
     print(gradient)
     return np.array(gradient)
 
