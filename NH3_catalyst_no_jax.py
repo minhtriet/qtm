@@ -24,7 +24,7 @@ logging.getLogger().setLevel(logging.INFO)
 
 # # # ! Steps
 
-# ![image.png](attachment:2b23a140-1fcd-4199-9cf4-a9c6a2231d57.png)                                                                                                                                 
+# ![image.png](attachment:2b23a140-1fcd-4199-9cf4-a9c6a2231d57.png)
 
 # | C/Q | Steps according to the paper | Comments |
 # |---|---|---|
@@ -50,6 +50,7 @@ from pennylane import qchem
 
 from ase import Atoms
 from ase.visualize import view
+
 # from pyscf import gto, scf, ci
 # from pennylane.qchem import import_state
 
@@ -65,7 +66,7 @@ import qtm.chem_config as chem_config
 # > - the climbing site corresponds to (0.63, 0.58, 0.44)
 # > - the bridge site corresponds to (0.7, 1.0, 0.44)
 # > - the trough site corresponds to (0.59, 0.50, 0.31)
-# > 
+# >
 # > Binding preference location
 # > - H prefers the bridge (0.71 eV) and top sites (0.62-0.70eV),
 # > - N prefers the bottom sites (1.06 eV) and the trough sites (1.53 eV),
@@ -88,11 +89,11 @@ from rdkit.Chem import rdmolfiles, SDMolSupplier, rdmolfiles
 np.random.seed(17)
 
 # inside NH3
-n2_x = np.random.uniform(0,1.1,[2])    # one value for N2
+n2_x = np.random.uniform(0, 1.1, [2])  # one value for N2
 
-h2_x = np.random.uniform(0,1.1,[6])    # three values for H2
-h2_y = np.random.uniform(-0.1,1.1,[6])
-h2_z = np.random.uniform(0.2,0.6,[6])
+h2_x = np.random.uniform(0, 1.1, [6])  # three values for H2
+h2_y = np.random.uniform(-0.1, 1.1, [6])
+h2_z = np.random.uniform(0.2, 0.6, [6])
 
 fe_top = [1.0, 0.0, 0.50]
 fe_bottom = [0.69, 0.14, 0.36]
@@ -102,15 +103,22 @@ fe_trough = [0.59, 0.5, 0.31]
 
 
 molecule = chem_config.H2
-active_electrons = molecule['active_electrons']
-active_orbitals = molecule['active_orbitals']
-electrons = molecule['electrons']
-orbitals = molecule['orbitals']
+active_electrons = molecule["active_electrons"]
+active_orbitals = molecule["active_orbitals"]
+electrons = molecule["electrons"]
+orbitals = molecule["orbitals"]
 # Let's visualize!
 
-#fe_lattice = Atoms('FeFeFeFeFe', [fe_top, fe_bottom, fe_climbing, fe_bridge, fe_trough])
-fe_lattice = Atoms(f"FeFeFeFeFe{''.join(molecule['symbols'])}", [fe_top, fe_bottom, fe_climbing, fe_bridge, fe_trough] + molecule["coords"])
-view(fe_lattice, viewer='ngl')
+fe_lattice = Atoms(
+    f"FeFeFeFeFe{''.join(molecule['symbols'])}",
+    np.concatenate(
+        [
+            [fe_top, fe_bottom, fe_climbing, fe_bridge, fe_trough],
+            np.reshape(molecule["coords"], (-1, 3)),
+        ],        
+    ),
+)
+view(fe_lattice, viewer="ngl")
 
 
 # # ## ! New define Hamitonian
@@ -128,26 +136,31 @@ view(fe_lattice, viewer='ngl')
 
 
 def create_pyscf_representation(symbols, coords):
-    coords = np.reshape(coords, (-1,3))
+    coords = np.reshape(coords, (-1, 3))
     return [[symbols[i], coords[i]] for i in range(len(symbols))]
 
 
-symbols = ["Fe", "Fe", "Fe", "Fe", "Fe"] + molecule['symbols']
+symbols = ["Fe", "Fe", "Fe", "Fe", "Fe"] + molecule["symbols"]
+
 
 def hamiltonian_from_coords(coords):
     base_coords = fe_top + fe_bottom + fe_climbing + fe_bridge + fe_trough
     coordinates = np.append(base_coords, coords)
-    H, qubits = qchem.molecular_hamiltonian(symbols, coordinates, method='openfermion',
-                                            active_electrons=active_electrons,
-                                            active_orbitals=active_orbitals, 
-                                            mult=1+molecule['unpaired_e'])
+    H, qubits = qchem.molecular_hamiltonian(
+        symbols,
+        coordinates,
+        method="openfermion",
+        active_electrons=active_electrons,
+        active_orbitals=active_orbitals,
+        mult=1 + molecule["unpaired_e"],
+    )
     # todo implement inital state
     # mol = gto.M(atom=create_pyscf_representation(symbols, coordinates))
     # perfrom restricted Hartree-Fock and then CISD
-    #myhf = scf.RHF(mol).run()
-    #myci = ci.CISD(myhf).run()
-    #wf_cisd = import_state(myci, tol=1e-1)
-    #logging.info(f"CISD-based state vector: \n{np.round(wf_cisd.real, 4)}")
+    # myhf = scf.RHF(mol).run()
+    # myci = ci.CISD(myhf).run()
+    # wf_cisd = import_state(myci, tol=1e-1)
+    # logging.info(f"CISD-based state vector: \n{np.round(wf_cisd.real, 4)}")
     return H, qubits
 
 
@@ -159,6 +172,7 @@ def hamiltonian_from_coords(coords):
 # - Define the cost function $⟨\Psi(\theta)|H|\Psi(\theta)⟩$
 # - Optimize for $\theta$
 
+
 # #### Create circuit
 def run_circuit(H, params):
     dev = qml.device("lightning.qubit", wires=len(H.wires))
@@ -167,9 +181,11 @@ def run_circuit(H, params):
 
     @qml.qnode(dev)
     def circuit():
-        qml.AllSinglesDoubles(hf_state=state, weights=params,
-                             wires=H.wires, singles=singles, doubles=doubles)
+        qml.AllSinglesDoubles(
+            hf_state=state, weights=params, wires=H.wires, singles=singles, doubles=doubles
+        )
         return qml.expval(H)
+
     return circuit()
 
 
@@ -178,6 +194,7 @@ def prepare_H(coords):
     n_qubits = len(H.wires)
     singles, doubles = qchem.excitations(active_electrons, n_qubits)
     return H, n_qubits, singles, doubles
+
 
 # ## Some manual grad calculation
 
@@ -203,7 +220,7 @@ def loss_f(thetas, coords):
     return run_circuit(H, thetas)
 
 
-# #### Optimize 
+# #### Optimize
 if __name__ == "__main__":
     [os.remove(hdf5) for hdf5 in os.listdir(".") if hdf5.endswith(".hdf5")]
 
@@ -211,7 +228,7 @@ if __name__ == "__main__":
     adsorbate_coords = np.array(molecule["coords"])
     _, __, singles, doubles = prepare_H(adsorbate_coords)
     total_single_double_gates = len(singles) + len(doubles)
-    
+
     # store the values of the cost function
     thetas = np.random.normal(0, np.pi, total_single_double_gates)
     max_iterations = 100
@@ -232,19 +249,21 @@ if __name__ == "__main__":
         adsorbate_coords.requires_grad = True
         thetas.requires_grad = False
         shifted_coords = []
-        with np.nditer(adsorbate_coords, op_flags=['readwrite']) as it:    # iterate through every element to add and minus a shift
+        with np.nditer(
+            adsorbate_coords, op_flags=["readwrite"]
+        ) as it:  # an overkill because it is iterating through a multidimensional array, but here we changed to 1-d array
             for i in it:
-                i[...] += 0.5*delta
+                i[...] += 0.5 * delta
                 shifted_coords.append(copy.copy(adsorbate_coords))
                 i[...] -= 2 * 0.5 * delta  # 2 because we have to undo the above shift
                 shifted_coords.append(copy.copy(adsorbate_coords))
-                i[...] += 0.5 * delta    # undo the above shift again
+                i[...] += 0.5 * delta  # undo the above shift again
         with get_context("spawn").Pool() as p:
             hs = p.map(hamiltonian_from_coords, shifted_coords)
             # Each hs[i] contains coordinates and the corresponding H
         grad_x = finite_diff(hs, thetas, delta)
-        adsorbate_coords -= 0.8*grad_x
-        
+        adsorbate_coords -= 0.8 * grad_x
+
         angle.append(thetas)
         coords.append(adsorbate_coords)
 
@@ -259,9 +278,9 @@ if __name__ == "__main__":
 #     - N2 bonds with Fe -> get the Hamiltonian
 #     - H2 bond with Fe -> get the Hamiltonian
 #     - N2 -> 2 N -> get the Hamiltonian
-#     - H2 -> 2H -> get the Hamiltonian 
+#     - H2 -> 2H -> get the Hamiltonian
 #     - H+N -> NH3 -> get the Hamiltonian
-# - Active method https://arxiv.org/pdf/2404.18737 
+# - Active method https://arxiv.org/pdf/2404.18737
 # - https://pubs.acs.org/doi/10.1021/acs.jpca.8b10007
 # - https://pubs.rsc.org/en/content/getauthorversionpdf/c9cp01611b Reaction pathway
 #
