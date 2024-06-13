@@ -206,7 +206,6 @@ def finite_diff(hs, theta, delta=0.01):
     x: coordinates, thetas is the rotational angles
     """
     gradient = []
-    logging.info("Compute the central-difference finite difference")
     # calculate the shifted coords
     # run the circuits with the shifted coords
     for i in tqdm(range(0, len(hs), 2)):
@@ -228,6 +227,7 @@ if __name__ == "__main__":
     adsorbate_coords = np.array(molecule["coords"])
     _, __, singles, doubles = prepare_H(adsorbate_coords)
     total_single_double_gates = len(singles) + len(doubles)
+    logging.info(f"New coordinates {adsorbate_coords}")
 
     # store the values of the cost function
     thetas = np.random.normal(0, np.pi, total_single_double_gates)
@@ -262,7 +262,9 @@ if __name__ == "__main__":
             hs = p.map(hamiltonian_from_coords, shifted_coords)
             # Each hs[i] contains coordinates and the corresponding H
         grad_x = finite_diff(hs, thetas, delta)
+        logging.info(f"gradients {grad_x}")
         adsorbate_coords -= 0.8 * grad_x
+        logging.info(f"New coordinates {adsorbate_coords}")
 
         angle.append(thetas)
         coords.append(adsorbate_coords)
