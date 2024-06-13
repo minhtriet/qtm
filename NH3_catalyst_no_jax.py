@@ -208,7 +208,7 @@ def finite_diff(hs, theta, delta=0.01):
     gradient = []
     # calculate the shifted coords
     # run the circuits with the shifted coords
-    for i in tqdm(range(0, len(hs), 2)):
+    for i in range(0, len(hs), 2):
         grad = (run_circuit(hs[i][0], theta) + run_circuit(hs[i + 1][0], theta)) * delta**-1
         gradient.append(grad)
     return np.array(gradient)
@@ -221,12 +221,11 @@ def loss_f(thetas, coords):
 
 # #### Optimize
 if __name__ == "__main__":
-    [os.remove(hdf5) for hdf5 in os.listdir(".") if hdf5.endswith(".hdf5")]
-
     # prepare for the 1st run
     adsorbate_coords = np.array(molecule["coords"])
     _, __, singles, doubles = prepare_H(adsorbate_coords)
     total_single_double_gates = len(singles) + len(doubles)
+    lr = 1e-5
     logging.info(f"New coordinates {adsorbate_coords}")
 
     # store the values of the cost function
@@ -239,6 +238,7 @@ if __name__ == "__main__":
     coords = []
 
     for _ in tqdm(range(max_iterations)):
+        [os.remove(hdf5) for hdf5 in os.listdir(".") if hdf5.endswith(".hdf5")]
         # Optimize the circuit parameters
         thetas.requires_grad = True
         adsorbate_coords.requires_grad = False
@@ -261,9 +261,11 @@ if __name__ == "__main__":
         with get_context("spawn").Pool() as p:
             hs = p.map(hamiltonian_from_coords, shifted_coords)
             # Each hs[i] contains coordinates and the corresponding H
+            logging.info(f"Energy level {run_circuit(hs[0][0], thetas)}")
+            
         grad_x = finite_diff(hs, thetas, delta)
         logging.info(f"gradients {grad_x}")
-        adsorbate_coords -= 0.8 * grad_x
+        adsorbate_coords -= lr * grad_x
         logging.info(f"New coordinates {adsorbate_coords}")
 
         angle.append(thetas)
