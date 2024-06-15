@@ -19,9 +19,15 @@ class HamiltonianBuilder:
         :param coordinate:
         :return:
         """
-        return qchem.molecular_hamiltonian(symbols=self.symbols, charge=self.charge, mult=self.mult,
-                            active_electrons=self.active_electrons, active_orbitals=self.active_orbitals,
-                            method='pyscf', coordinates=coordinate)
+        return qchem.molecular_hamiltonian(
+            symbols=self.symbols,
+            charge=self.charge,
+            mult=self.mult,
+            active_electrons=self.active_electrons,
+            active_orbitals=self.active_orbitals,
+            method="pyscf",
+            coordinates=coordinate,
+        )
 
     def parallel_build_hamiltonian(self, coordinates_list):
         # Function to be used with Pool.map to process coordinates in parallel

@@ -34,7 +34,7 @@ H2 = {
     "active_electrons": 1 + 1,  # (1s1) + (1s1)
     "active_orbitals": 1 + 1,  # (1s1) + (1s1)
     "unpaired_e": 0,
-    "coords": [0,0,-1.5,
-               0,0,1.5],
-    "symbols": ["H", "H"]
+    "coords": [0, 0, -1.5,
+               0, 0, 1.5],
+    "symbols": ["H", "H"],
 }

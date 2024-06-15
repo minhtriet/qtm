@@ -49,7 +49,6 @@ from pennylane import numpy as np
 from pennylane import qchem
 
 from ase import Atoms
-from ase.visualize import view
 
 # from pyscf import gto, scf, ci
 # from pennylane.qchem import import_state
@@ -76,7 +75,6 @@ import qtm.chem_config as chem_config
 #
 # Always 4 $N$ in Fig 3
 
-from rdkit.Chem import rdmolfiles, SDMolSupplier, rdmolfiles
 
 
 # in case we have to load from SDMol
@@ -102,7 +100,7 @@ fe_bridge = [0.7, 1.0, 0.44]
 fe_trough = [0.59, 0.5, 0.31]
 
 
-molecule = chem_config.H2
+molecule = chem_config.NH2
 active_electrons = molecule["active_electrons"]
 active_orbitals = molecule["active_orbitals"]
 electrons = molecule["electrons"]
@@ -118,7 +116,6 @@ fe_lattice = Atoms(
         ],        
     ),
 )
-view(fe_lattice, viewer="ngl")
 
 
 # # ## ! New define Hamitonian
