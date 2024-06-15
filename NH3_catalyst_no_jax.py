@@ -234,13 +234,25 @@ if __name__ == "__main__":
     angle = []
     coords = []
 
+    # todo debug the moving away
+    # init cooridation
+    # optimize theta
+    # todo print the ground state this hamiltonian 1
+    # todo eigenvalue of the Hamiltonian 2
+    # comapre (1) and (2)
+
+    # todo to speed up (print number of qubits)
+
+
+
     for _ in tqdm(range(max_iterations)):
         [os.remove(hdf5) for hdf5 in os.listdir(".") if hdf5.endswith(".hdf5")]
         # Optimize the circuit parameters
+        start = time.time()
         thetas.requires_grad = True
         adsorbate_coords.requires_grad = False
         thetas, _ = opt_theta.step(loss_f, thetas, adsorbate_coords)
-        logging.info("Done theta, starting coordinates")
+        logging.info(f"Done theta, starting coordinates {time.time()- start}")
 
         # Optimize the nuclear coordinates
         adsorbate_coords.requires_grad = True
@@ -255,11 +267,12 @@ if __name__ == "__main__":
                 i[...] -= 2 * 0.5 * delta  # 2 because we have to undo the above shift
                 shifted_coords.append(copy.copy(adsorbate_coords))
                 i[...] += 0.5 * delta  # undo the above shift again
+        start = time.time()
         with get_context("spawn").Pool() as p:
             hs = p.map(hamiltonian_from_coords, shifted_coords)
             # Each hs[i] contains coordinates and the corresponding H
             logging.info(f"Energy level {run_circuit(hs[0][0], thetas)}")
-            
+        # todo get the energy of one of the hamiltonian
         grad_x = finite_diff(hs, thetas, delta)
         logging.info(f"gradients {grad_x}")
         adsorbate_coords -= lr * grad_x
@@ -301,3 +314,5 @@ if __name__ == "__main__":
 # 3. Paper
 #    1. https://www.pnas.org/doi/abs/10.1073/pnas.1619152114
 #    2. https://arxiv.org/pdf/2007.14460
+
+# Get the matrix H 

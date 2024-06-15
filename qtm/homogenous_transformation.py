@@ -16,8 +16,8 @@ class HomogenousTransformation:
         homo_x = np.array(
             [
                 [1, 0, 0, t_x],
-                [0, c, -s, 1],
-                [0, s, c, 1],
+                [0, c, -s, 0],
+                [0, s, c, 0],
                 [0, 0, 0, 1],
             ]
         )
@@ -27,9 +27,9 @@ class HomogenousTransformation:
         homo_y = np.array(
             [
 
-                [c, 0, s, 1],
+                [c, 0, s, 0],
                 [0, 1, 0, t_y],
-                [-s, 0, c, 1],
+                [-s, 0, c, 0],
                 [0, 0, 0, 1]
             ]
         )
@@ -38,13 +38,10 @@ class HomogenousTransformation:
         c, s = np.cos(theta_z), np.sin(theta_z)
         homo_z = np.array(
             [
-                [c, -s, 0, 1],
-                [s, c, 0, 1],
+                [c, -s, 0, 0],
+                [s, c, 0, 0],
                 [0, 0, 1, t_z],
                 [0, 0, 0, 1],
             ]
         )
-
         return homo_x @ homo_y @ homo_z
-        """Apply the transformation matrix to a vector."""
-        return 1
