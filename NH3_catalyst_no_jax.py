@@ -171,19 +171,25 @@ def hamiltonian_from_coords(coords):
 
 
 # #### Create circuit
-def run_circuit(H, params):
+def run_circuit(H, params, init_state):
     dev = qml.device("lightning.qubit", wires=len(H.wires))
-    state = qchem.hf_state(active_electrons, len(H.wires))
-    singles, doubles = qchem.excitations(active_electrons, len(H.wires))
 
     @qml.qnode(dev)
-    def circuit():
+    def circuit_theta():
+        state = qchem.hf_state(active_electrons, len(H.wires))
+        singles, doubles = qchem.excitations(active_electrons, len(H.wires))
         qml.AllSinglesDoubles(
             hf_state=state, weights=params, wires=H.wires, singles=singles, doubles=doubles
         )
         return qml.expval(H)
-
-    return circuit()
+    @qml.qnode(dev)
+    def circuit_state():
+        qml.StatePrep(init_state, H.wires)
+        return qml.expval(H)
+    if params:
+        return circuit_theta()
+    else:
+        return circuit_state()
 
 
 def prepare_H(coords):
@@ -198,10 +204,12 @@ def prepare_H(coords):
 opt_theta = qml.GradientDescentOptimizer(stepsize=0.4)
 
 
-def finite_diff(hs, theta, delta=0.01):
+def finite_diff(hs, theta, state, delta=0.01):
     """Compute the central-difference finite difference of a function
     x: coordinates, thetas is the rotational angles
     """
+    if theta and state:
+        raise ValueError("Theta and state are mutually exclusive")
     gradient = []
     # calculate the shifted coords
     # run the circuits with the shifted coords
@@ -243,15 +251,16 @@ if __name__ == "__main__":
 
     # todo to speed up (print number of qubits)
 
-
-
     for _ in tqdm(range(max_iterations)):
         [os.remove(hdf5) for hdf5 in os.listdir(".") if hdf5.endswith(".hdf5")]
         # Optimize the circuit parameters
         start = time.time()
         thetas.requires_grad = True
         adsorbate_coords.requires_grad = False
-        thetas, _ = opt_theta.step(loss_f, thetas, adsorbate_coords)
+        H, _ = hamiltonian_from_coords(adsorbate_coords)
+        # fixme re-enable the optimize later
+        state, value = np.eigvalue(qml.matrix(H))
+        # thetas, _ = opt_theta.step(loss_f, thetas, adsorbate_coords)
         logging.info(f"Done theta, starting coordinates {time.time()- start}")
 
         # Optimize the nuclear coordinates
@@ -272,8 +281,8 @@ if __name__ == "__main__":
             hs = p.map(hamiltonian_from_coords, shifted_coords)
             # Each hs[i] contains coordinates and the corresponding H
             logging.info(f"Energy level {run_circuit(hs[0][0], thetas)}")
-        # todo get the energy of one of the hamiltonian
-        grad_x = finite_diff(hs, thetas, delta)
+        # todo get the energy of one of the hamiltonia
+        grad_x = finite_diff(hs, thetas, state, delta)
         logging.info(f"gradients {grad_x}")
         adsorbate_coords -= lr * grad_x
         logging.info(f"New coordinates {adsorbate_coords}")
