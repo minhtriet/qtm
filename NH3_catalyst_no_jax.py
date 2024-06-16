@@ -259,7 +259,9 @@ if __name__ == "__main__":
         adsorbate_coords.requires_grad = False
         H, _ = hamiltonian_from_coords(adsorbate_coords)
         # fixme re-enable the optimize later
-        state, value = np.eigvalue(qml.matrix(H))
+        value, state = np.linalg.eig(qml.matrix(H))
+        smallest_i = np.argmin(value)
+        g_energy, g_state = value[smallest_i], state[smallest_i]
         # thetas, _ = opt_theta.step(loss_f, thetas, adsorbate_coords)
         logging.info(f"Done theta, starting coordinates {time.time()- start}")
 
@@ -282,7 +284,7 @@ if __name__ == "__main__":
             # Each hs[i] contains coordinates and the corresponding H
             logging.info(f"Energy level {run_circuit(hs[0][0], thetas)}")
         # todo get the energy of one of the hamiltonia
-        grad_x = finite_diff(hs, thetas, state, delta)
+        grad_x = finite_diff(hs, thetas, g_state, delta)
         logging.info(f"gradients {grad_x}")
         adsorbate_coords -= lr * grad_x
         logging.info(f"New coordinates {adsorbate_coords}")
