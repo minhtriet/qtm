@@ -1,30 +1,25 @@
 import numpy as np
+import pytest
 
 from qtm.homogenous_transformation import HomogenousTransformation
 
-def test_transformation():
+
+@pytest.mark.parametrize(
+    "angle_x, angle_y, angle_z, t_x, t_y, t_z, point, expected",
+    [
+        (0, 0, 0, 1, 2, 3, [1, 2, 3, 1], [2, 4, 6, 1]),
+        (np.pi, 0, 0, 1, 0, 0, [0, 0, 1, 1], [1, 0, -1, 1]),
+        (np.pi, np.pi, np.pi, 1, 2, 3, [0, 0, 1, 1], [1, 2, 4, 1]),
+        (np.pi * 0.5, 0, 0, 0, 0, 0, [np.sqrt(2), np.sqrt(2), 0, 1], [np.sqrt(2), 0, np.sqrt(2), 1]),
+        (0, np.pi*0.5, 0, 0, 0, 0, [np.sqrt(2), 0, np.sqrt(2), 1], [np.sqrt(2), 0, -np.sqrt(2), 1]),
+        (np.pi*0.5, np.pi*0.5, 0, 0, 0, 0, [np.sqrt(2), np.sqrt(2), 0, 1], [np.sqrt(2), np.sqrt(2), 0, 1]),
+    ],
+)
+def test_translation(angle_x, angle_y, angle_z, t_x, t_y, t_z, point, expected):
     ht = HomogenousTransformation()
-    # Define a vector
-    vector = np.array([1, 1, 1])
 
     # Define angles for rotation
-    angle_x = np.pi / 4  # 45 degrees
-    angle_y = np.pi / 6  # 30 degrees
-    angle_z = np.pi / 3  # 60 degrees
-
-    # Define translation vector
-    translation_vector = np.array([1, 2, 3])
-
-    # Example usage
-    angle_x = np.pi / 2  # 90 degrees
-
-    transformation_matrix = ht.transform(angle_x, angle_y, angle_z, 1, 2, 3)
-    point = [1, 2, 3, 1]
+    transformation_matrix = ht.transform(angle_x, angle_y, angle_z, t_x, t_y, t_z)
     transformed_point = transformation_matrix @ point
-    print("Original point:", point)
-    print("Transformed point:", transformed_point)
 
-    expected_transformed_point = np.array([2, 3, 4, 1])
-
-    np.testing.assert_array_almost_equal(transformed_point, expected_transformed_point, decimal=6)
-
+    np.testing.assert_array_almost_equal(transformed_point, expected, decimal=6)

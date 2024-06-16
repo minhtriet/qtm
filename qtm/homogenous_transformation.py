@@ -15,7 +15,7 @@ class HomogenousTransformation:
         c, s = np.cos(theta_x), np.sin(theta_x)
         homo_x = np.array(
             [
-                [1, 0, 0, t_x],
+                [1, 0, 0, 0],
                 [0, c, -s, 0],
                 [0, s, c, 0],
                 [0, 0, 0, 1],
@@ -28,7 +28,7 @@ class HomogenousTransformation:
             [
 
                 [c, 0, s, 0],
-                [0, 1, 0, t_y],
+                [0, 1, 0, 0],
                 [-s, 0, c, 0],
                 [0, 0, 0, 1]
             ]
@@ -40,8 +40,10 @@ class HomogenousTransformation:
             [
                 [c, -s, 0, 0],
                 [s, c, 0, 0],
-                [0, 0, 1, t_z],
+                [0, 0, 1, 0],
                 [0, 0, 0, 1],
             ]
         )
-        return homo_x @ homo_y @ homo_z
+        result = homo_x @ homo_y @ homo_z
+        result[0][3], result[1][3], result[2][3] = t_x, t_y, t_z
+        return result
