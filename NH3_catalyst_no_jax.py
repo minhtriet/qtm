@@ -76,7 +76,6 @@ import qtm.chem_config as chem_config
 # Always 4 $N$ in Fig 3
 
 
-
 # in case we have to load from SDMol
 # sd_supplier = SDMolSupplier("Structure2D_COMPOUND_CID_123329.sdf")
 #
@@ -113,7 +112,7 @@ fe_lattice = Atoms(
         [
             [fe_top, fe_bottom, fe_climbing, fe_bridge, fe_trough],
             np.reshape(molecule["coords"], (-1, 3)),
-        ],        
+        ],
     ),
 )
 
@@ -187,6 +186,7 @@ def run_circuit(H, params=None, init_state=None):
     def circuit_state():
         qml.StatePrep(init_state, H.wires)
         return qml.expval(H)
+
     if init_state is not None:
         return circuit_state()
     elif params:
@@ -327,4 +327,4 @@ if __name__ == "__main__":
 #    1. https://www.pnas.org/doi/abs/10.1073/pnas.1619152114
 #    2. https://arxiv.org/pdf/2007.14460
 
-# Get the matrix H 
+# Get the matrix H
