@@ -182,14 +182,16 @@ def run_circuit(H, params=None, init_state=None):
             hf_state=state, weights=params, wires=H.wires, singles=singles, doubles=doubles
         )
         return qml.expval(H)
+
     @qml.qnode(dev)
     def circuit_state():
         qml.StatePrep(init_state, H.wires)
         return qml.expval(H)
-    if params:
-        return circuit_theta()
-    elif init_state is not None:
+    if init_state is not None:
         return circuit_state()
+    elif params:
+        logging.info("Optimizing for theta")
+        return circuit_theta()
 
 
 def prepare_H(coords):
@@ -208,8 +210,6 @@ def finite_diff(hs, theta, state, delta=0.01):
     """Compute the central-difference finite difference of a function
     x: coordinates, thetas is the rotational angles
     """
-    if theta and (state is not None):
-        raise ValueError("Theta and state are mutually exclusive")
     gradient = []
     # calculate the shifted coords
     # run the circuits with the shifted coords
