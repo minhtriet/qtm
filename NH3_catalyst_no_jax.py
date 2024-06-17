@@ -188,7 +188,7 @@ def run_circuit(H, params=None, init_state=None):
         return qml.expval(H)
     if params:
         return circuit_theta()
-    elif init_state:
+    elif init_state is not None:
         return circuit_state()
 
 
