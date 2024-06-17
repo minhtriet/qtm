@@ -214,7 +214,8 @@ def finite_diff(hs, theta, state, delta=0.01):
     # calculate the shifted coords
     # run the circuits with the shifted coords
     for i in range(0, len(hs), 2):
-        grad = (run_circuit(hs[i][0], theta) + run_circuit(hs[i + 1][0], theta)) * delta**-1
+        # grad = (run_circuit(hs[i][0], theta) + run_circuit(hs[i + 1][0], theta)) * delta**-1
+        grad = (run_circuit(hs[i][0], init_state=state) + run_circuit(hs[i + 1][0], init_state=state)) * delta**-1
         gradient.append(grad)
     return np.array(gradient)
 
