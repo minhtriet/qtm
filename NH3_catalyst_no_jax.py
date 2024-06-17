@@ -171,7 +171,7 @@ def hamiltonian_from_coords(coords):
 
 
 # #### Create circuit
-def run_circuit(H, params, init_state):
+def run_circuit(H, params=None, init_state=None):
     dev = qml.device("lightning.qubit", wires=len(H.wires))
 
     @qml.qnode(dev)
@@ -188,7 +188,7 @@ def run_circuit(H, params, init_state):
         return qml.expval(H)
     if params:
         return circuit_theta()
-    else:
+    elif init_state:
         return circuit_state()
 
 
@@ -282,14 +282,14 @@ if __name__ == "__main__":
         with get_context("spawn").Pool() as p:
             hs = p.map(hamiltonian_from_coords, shifted_coords)
             # Each hs[i] contains coordinates and the corresponding H
-            logging.info(f"Energy level {run_circuit(hs[0][0], thetas)}")
+            logging.info(f"Energy level {run_circuit(hs[0][0], init_state=g_state)}")
         # todo get the energy of one of the hamiltonia
         grad_x = finite_diff(hs, thetas, g_state, delta)
         logging.info(f"gradients {grad_x}")
         adsorbate_coords -= lr * grad_x
         logging.info(f"New coordinates {adsorbate_coords}")
 
-        angle.append(thetas)
+        # angle.append(thetas)
         coords.append(adsorbate_coords)
 
     print(coords)
