@@ -208,7 +208,7 @@ def finite_diff(hs, theta, state, delta=0.01):
     """Compute the central-difference finite difference of a function
     x: coordinates, thetas is the rotational angles
     """
-    if theta and state:
+    if theta and (state is not None):
         raise ValueError("Theta and state are mutually exclusive")
     gradient = []
     # calculate the shifted coords
