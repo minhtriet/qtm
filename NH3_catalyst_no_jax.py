@@ -262,6 +262,7 @@ if __name__ == "__main__":
         value, state = np.linalg.eig(qml.matrix(H))
         smallest_i = np.argmin(value)
         g_energy, g_state = value[smallest_i], state[smallest_i]
+        g_state /= np.linalg.norm(g_state)
         # thetas, _ = opt_theta.step(loss_f, thetas, adsorbate_coords)
         logging.info(f"Done theta, starting coordinates {time.time()- start}")
 
