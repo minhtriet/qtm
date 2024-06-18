@@ -76,7 +76,6 @@ import qtm.chem_config as chem_config
 # Always 4 $N$ in Fig 3
 
 
-
 # in case we have to load from SDMol
 # sd_supplier = SDMolSupplier("Structure2D_COMPOUND_CID_123329.sdf")
 #
@@ -113,7 +112,7 @@ fe_lattice = Atoms(
         [
             [fe_top, fe_bottom, fe_climbing, fe_bridge, fe_trough],
             np.reshape(molecule["coords"], (-1, 3)),
-        ],        
+        ],
     ),
 )
 
@@ -171,7 +170,7 @@ def hamiltonian_from_coords(coords):
 
 
 # #### Create circuit
-def run_circuit(H, params, init_state):
+def run_circuit(H, params=None, init_state=None):
     dev = qml.device("lightning.qubit", wires=len(H.wires))
 
     @qml.qnode(dev)
@@ -182,14 +181,17 @@ def run_circuit(H, params, init_state):
             hf_state=state, weights=params, wires=H.wires, singles=singles, doubles=doubles
         )
         return qml.expval(H)
+
     @qml.qnode(dev)
     def circuit_state():
         qml.StatePrep(init_state, H.wires)
         return qml.expval(H)
-    if params:
-        return circuit_theta()
-    else:
+
+    if init_state is not None:
         return circuit_state()
+    elif params:
+        logging.info("Optimizing for theta")
+        return circuit_theta()
 
 
 def prepare_H(coords):
@@ -208,13 +210,12 @@ def finite_diff(hs, theta, state, delta=0.01):
     """Compute the central-difference finite difference of a function
     x: coordinates, thetas is the rotational angles
     """
-    if theta and state:
-        raise ValueError("Theta and state are mutually exclusive")
     gradient = []
     # calculate the shifted coords
     # run the circuits with the shifted coords
     for i in range(0, len(hs), 2):
-        grad = (run_circuit(hs[i][0], theta) + run_circuit(hs[i + 1][0], theta)) * delta**-1
+        # grad = (run_circuit(hs[i][0], theta) + run_circuit(hs[i + 1][0], theta)) * delta**-1
+        grad = (run_circuit(hs[i][0], init_state=state) + run_circuit(hs[i + 1][0], init_state=state)) * delta**-1
         gradient.append(grad)
     return np.array(gradient)
 
@@ -262,6 +263,7 @@ if __name__ == "__main__":
         value, state = np.linalg.eig(qml.matrix(H))
         smallest_i = np.argmin(value)
         g_energy, g_state = value[smallest_i], state[smallest_i]
+        g_state /= np.linalg.norm(g_state)
         # thetas, _ = opt_theta.step(loss_f, thetas, adsorbate_coords)
         logging.info(f"Done theta, starting coordinates {time.time()- start}")
 
@@ -282,14 +284,14 @@ if __name__ == "__main__":
         with get_context("spawn").Pool() as p:
             hs = p.map(hamiltonian_from_coords, shifted_coords)
             # Each hs[i] contains coordinates and the corresponding H
-            logging.info(f"Energy level {run_circuit(hs[0][0], thetas)}")
+            logging.info(f"Energy level {run_circuit(hs[0][0], init_state=g_state)}")
         # todo get the energy of one of the hamiltonia
         grad_x = finite_diff(hs, thetas, g_state, delta)
         logging.info(f"gradients {grad_x}")
         adsorbate_coords -= lr * grad_x
         logging.info(f"New coordinates {adsorbate_coords}")
 
-        angle.append(thetas)
+        # angle.append(thetas)
         coords.append(adsorbate_coords)
 
     print(coords)
@@ -326,4 +328,4 @@ if __name__ == "__main__":
 #    1. https://www.pnas.org/doi/abs/10.1073/pnas.1619152114
 #    2. https://arxiv.org/pdf/2007.14460
 
-# Get the matrix H 
+# Get the matrix H
