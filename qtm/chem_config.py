@@ -6,10 +6,10 @@ NH2 = {
     "active_orbitals": 1 + 1 + 3,  # (1s1) + (1s1) + (2p3)
     "unpaired_e": 1,
     "coords": [
-        # 3N_NH2. NH2 is a radical, short lived https://pubchem.ncbi.nlm.nih.gov/compound/123329#section=2D-Structure
-        2.5369, -0.1550, 0.0000,   # nh2_n
-        3.0739, 0.1550, 0.0000,    # nh2_h1
-        2.0000, 0.1550, 0.0000 # nh2_h2
+        # 3N_NH2. NH2 is a radical, short-lived https://pubchem.ncbi.nlm.nih.gov/compound/123329#section=2D-Structure
+        2.5369-2.5, -0.1550+0.1, 0.0000-0.5,   # nh2_n
+        3.0739-2.5,  0.1550+0.1, 0.0000-0.5,    # nh2_h1
+        2.0000-2.5,  0.1550+0.1, 0.0000-0.5     # nh2_h2
     ],
     "symbols": ["N", "H", "H"]
 }
