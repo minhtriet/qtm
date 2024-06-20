@@ -269,12 +269,13 @@ if __name__ == "__main__":
 
         # Optimize the nuclear coordinates
         adsorbate_coords.requires_grad = True
-        from qtm.homogenous_transformation import transform as T
+        from qtm.homogenous_transformation import HomogenousTransformation
+        ht = HomogenousTransformation()
         thetas.requires_grad = False
         delta_angle = np.pi / 180
         delta_coord = 0.1
         # all possible transformations
-        transformation = [[delta_angle, 0, 0, 0, 0, 0],
+        transformations = [[delta_angle, 0, 0, 0, 0, 0],
                           [-delta_angle, 0, 0, 0, 0, 0],
                           [0, delta_angle, 0, 0, 0, 0],
                           [0, -delta_angle, 0, 0, 0, 0],
@@ -286,7 +287,9 @@ if __name__ == "__main__":
                           [0, 0, 0, 0, -delta_coord, 0],
                           [0, 0, 0, 0, 0, delta_coord],
                           [0, 0, 0, 0, 0, -delta_coord]]
-        shifted_coords = (T(transformation[0]) @ adsorbate_coords).unique()   # unique to reduce the rotation for single atoms, since it doesn't change
+        shifted_coords = [(ht.transform(*transformation) @ adsorbate_coords) for transformation in transformations]
+            
+        # .unique()   # unique to reduce the rotation for single atoms, since it doesn't change
         start = time.time()
         with get_context("spawn").Pool() as p:
             hs = p.map(hamiltonian_from_coords, shifted_coords)
