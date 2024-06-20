@@ -237,17 +237,17 @@ if __name__ == "__main__":
     # store the values of the cost function
     thetas = np.random.normal(0, np.pi, total_single_double_gates)
     max_iterations = 100
-    delta = 0.01
+    delta_angle = 0.01
 
     # store the values of the circuit parameter
     angle = []
     coords = []
 
-    # todo debug the moving away
+    # debug the moving away
     # init cooridation
     # optimize theta
-    # todo print the ground state this hamiltonian 1
-    # todo eigenvalue of the Hamiltonian 2
+    # print the ground state this hamiltonian 1
+    # eigenvalue of the Hamiltonian 2
     # comapre (1) and (2)
 
     # todo to speed up (print number of qubits)
@@ -269,24 +269,31 @@ if __name__ == "__main__":
 
         # Optimize the nuclear coordinates
         adsorbate_coords.requires_grad = True
+        from qtm.homogenous_transformation import transform as T
         thetas.requires_grad = False
-        shifted_coords = []
-        with np.nditer(
-            adsorbate_coords, op_flags=["readwrite"]
-        ) as it:  # an overkill because it is iterating through a multidimensional array, but here we changed to 1-d array
-            for i in it:
-                i[...] += 0.5 * delta
-                shifted_coords.append(copy.copy(adsorbate_coords))
-                i[...] -= 2 * 0.5 * delta  # 2 because we have to undo the above shift
-                shifted_coords.append(copy.copy(adsorbate_coords))
-                i[...] += 0.5 * delta  # undo the above shift again
+        delta_angle = np.pi / 180
+        delta_coord = 0.1
+        # all possible transformations
+        transformation = [[delta_angle, 0, 0, 0, 0, 0],
+                          [-delta_angle, 0, 0, 0, 0, 0],
+                          [0, delta_angle, 0, 0, 0, 0],
+                          [0, -delta_angle, 0, 0, 0, 0],
+                          [0, 0, delta_angle, 0, 0, 0],
+                          [0, 0, -delta_angle, 0, 0, 0],
+                          [0, 0, 0, delta_coord, 0, 0],
+                          [0, 0, 0, -delta_coord, 0, 0],
+                          [0, 0, 0, 0, delta_coord, 0],
+                          [0, 0, 0, 0, -delta_coord, 0],
+                          [0, 0, 0, 0, 0, delta_coord],
+                          [0, 0, 0, 0, 0, -delta_coord]]
+        shifted_coords = (T(transformation[0]) @ adsorbate_coords).unique()   # unique to reduce the rotation for single atoms, since it doesn't change
         start = time.time()
         with get_context("spawn").Pool() as p:
             hs = p.map(hamiltonian_from_coords, shifted_coords)
             # Each hs[i] contains coordinates and the corresponding H
             logging.info(f"Energy level {run_circuit(hs[0][0], init_state=g_state)}")
         # todo get the energy of one of the hamiltonia
-        grad_x = finite_diff(hs, thetas, g_state, delta)
+        grad_x = finite_diff(hs, thetas, g_state, delta_angle)
         logging.info(f"gradients {grad_x}")
         adsorbate_coords -= lr * grad_x
         logging.info(f"New coordinates {adsorbate_coords}")
