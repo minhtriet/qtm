@@ -1,6 +1,7 @@
 import copy
 import logging
 from qtm.homogeneous_transformation import HomogenousTransformation
+import json
 
 logger = logging.getLogger(__name__)
 FORMAT = "[%(filename)s:%(lineno)s - %(funcName)20s() ] %(message)s"
@@ -264,40 +265,10 @@ if __name__ == "__main__":
         logging.info(f"New coordinates {adsorbate_coords}")
 
         # angle.append(thetas)
-        coords.append(adsorbate_coords)
+        coords.append(adsorbate_coords.tolist())
 
     print(coords)
     print(angle)
 
-# ## Next step / meeting minute
-#
-# ### 2nd week
-# The quantity we need to measure
-# - The intermediate configurations
-#     - N2 bonds with Fe -> get the Hamiltonian
-#     - H2 bond with Fe -> get the Hamiltonian
-#     - N2 -> 2 N -> get the Hamiltonian
-#     - H2 -> 2H -> get the Hamiltonian
-#     - H+N -> NH3 -> get the Hamiltonian
-# - Active method https://arxiv.org/pdf/2404.18737
-# - https://pubs.acs.org/doi/10.1021/acs.jpca.8b10007
-# - https://pubs.rsc.org/en/content/getauthorversionpdf/c9cp01611b Reaction pathway
-#
-# ### 1st week
-# 1. Use params `active_electrons`, `active_orbitals` inside `molecular_hamiltonian`
-#     1. Principled way to do it without knowing Fe is catalyst?
-#        > valence electron in the outer shell, choose the radius (coordinate?)
-#     2. Coordinates
-#        > coordinate for reactant, coordinate for products may be in somewhere else
-#        > evaluate energy at a lot of different coordinates?
-#        > Put H2 N2 Fe closer and then farther to see what happens. There must be a method
-#     3. QPE
-#        > Time evolution. Trotter, LCU (build different matrix, one of them is time evolution), Qubitizations
-# 2. ZNE?
-#     1. If it concat a chain of gates, could the real system reach the end of the gates?
-#     2. Doesn't seem to need more qubit?
-# 3. Paper
-#    1. https://www.pnas.org/doi/abs/10.1073/pnas.1619152114
-#    2. https://arxiv.org/pdf/2007.14460
-
-# Get the matrix H
+    with open('coords.txt', 'w') as filehandle:
+        json.dump(coords, filehandle)
