@@ -50,9 +50,6 @@ from pennylane import qchem
 
 from ase import Atoms
 
-# from pyscf import gto, scf, ci
-# from pennylane.qchem import import_state
-
 from tqdm import tqdm
 
 import qtm.chem_config as chem_config
@@ -150,13 +147,6 @@ def hamiltonian_from_coords(coords):
         active_orbitals=active_orbitals,
         mult=1 + molecule["unpaired_e"],
     )
-    # todo implement inital state
-    # mol = gto.M(atom=create_pyscf_representation(symbols, coordinates))
-    # perfrom restricted Hartree-Fock and then CISD
-    # myhf = scf.RHF(mol).run()
-    # myci = ci.CISD(myhf).run()
-    # wf_cisd = import_state(myci, tol=1e-1)
-    # logging.info(f"CISD-based state vector: \n{np.round(wf_cisd.real, 4)}")
     return H, qubits
 
 
