@@ -7,7 +7,14 @@ class HomogenousTransformation:
         pass
 
     @staticmethod
-    def transform(theta_x, theta_y, theta_z, t_x, t_y, t_z):
+    def transform(coordinates, theta_x, theta_y, theta_z, t_x, t_y, t_z):
+        homogeneous = HomogenousTransformation._convert_to_homogeneous(coordinates)
+        trans_matrix = HomogenousTransformation._generate_transform_matrix(theta_x, theta_y, theta_z, t_x, t_y, t_z)
+        homogeneous = trans_matrix @ homogeneous
+        return HomogenousTransformation._convert_to_descartes(homogeneous)
+
+    @staticmethod
+    def _generate_transform_matrix(theta_x, theta_y, theta_z, t_x, t_y, t_z):
         """
         Construct a homogenous transformation
         """

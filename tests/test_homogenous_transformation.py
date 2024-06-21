@@ -37,7 +37,7 @@ def test_translation(angle_x, angle_y, angle_z, t_x, t_y, t_z, point, expected):
     ht = HomogenousTransformation
 
     # Define angles for rotation
-    transformation_matrix = ht.transform(angle_x, angle_y, angle_z, t_x, t_y, t_z)
+    transformation_matrix = ht._generate_transform_matrix(angle_x, angle_y, angle_z, t_x, t_y, t_z)
     transformed_point = transformation_matrix @ point
 
     np.testing.assert_array_almost_equal(transformed_point, expected, decimal=6)

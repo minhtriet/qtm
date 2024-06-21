@@ -287,7 +287,7 @@ if __name__ == "__main__":
                           [0, 0, 0, 0, -delta_coord, 0],
                           [0, 0, 0, 0, 0, delta_coord],
                           [0, 0, 0, 0, 0, -delta_coord]]
-        shifted_coords = [(ht.transform(*transformation) @ adsorbate_coords) for transformation in transformations]
+        shifted_coords = [(ht.transform(adsorbate_coords, *transformation)) for transformation in transformations]
             
         # .unique()   # unique to reduce the rotation for single atoms, since it doesn't change
         start = time.time()
