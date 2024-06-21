@@ -288,7 +288,7 @@ if __name__ == "__main__":
         grad_x = finite_diff([h[0] for h in hs], thetas, g_state, delta_angle)
         
         logging.info(f"gradients {grad_x}")
-        transform_matrix = np.zeroes(12)
+        transform_matrix = np.zeros(12)
         transform_matrix -= lr * grad_x
         adsorbate_coords = ht.transform(adsorbate_coords, transform_matrix)
         logging.info(f"New coordinates {adsorbate_coords}")
