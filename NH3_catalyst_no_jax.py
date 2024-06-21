@@ -200,12 +200,12 @@ def finite_diff(hs, theta, state, delta_theta=0.01, delta_xyz=0.01):
     """Compute the central-difference finite difference of a function
     x: coordinates, thetas is the rotational angles
     """
-    theta_x_grad = (run_circuit(hs[0]) - run_circuit(hs[1])) * (0.5*delta_theta**-1)
-    theta_y_grad = (run_circuit(hs[2]) - run_circuit(hs[3])) * (0.5*delta_theta**-1)
-    theta_z_grad = (run_circuit(hs[4]) - run_circuit(hs[5])) * (0.5*delta_theta**-1)
-    x_grad = (run_circuit(hs[6]) - run_circuit(hs[7])) * (0.5*delta_xyz**-1)
-    y_grad = (run_circuit(hs[8]) - run_circuit(hs[9])) * (0.5*delta_xyz**-1)
-    z_grad = (run_circuit(hs[10]) - run_circuit(hs[11])) * (0.5*delta_xyz**-1)
+    theta_x_grad = (run_circuit(hs[0], init_state=state) - run_circuit(hs[1], init_state=state)) * (0.5*delta_theta**-1)
+    theta_y_grad = (run_circuit(hs[2], init_state=state) - run_circuit(hs[3], init_state=state)) * (0.5*delta_theta**-1)
+    theta_z_grad = (run_circuit(hs[4], init_state=state) - run_circuit(hs[5], init_state=state)) * (0.5*delta_theta**-1)
+    x_grad = (run_circuit(hs[6], init_state=state) - run_circuit(hs[7], init_state=state)) * (0.5*delta_xyz**-1)
+    y_grad = (run_circuit(hs[8], init_state=state) - run_circuit(hs[9], init_state=state)) * (0.5*delta_xyz**-1)
+    z_grad = (run_circuit(hs[10], init_state=state) - run_circuit(hs[11], init_state=state)) * (0.5*delta_xyz**-1)
 
     return np.array([theta_x_grad, theta_y_grad, theta_z_grad, x_grad, y_grad, z_grad])
 
@@ -285,8 +285,7 @@ if __name__ == "__main__":
             hs = p.map(hamiltonian_from_coords, shifted_coords)
             # Each hs[i] contains coordinates and the corresponding H
             logging.info(f"Energy level {run_circuit(hs[0][0], init_state=g_state)}")
-        # todo get the energy of one of the hamiltonia
-        grad_x = finite_diff(hs, thetas, g_state, delta_angle)
+        grad_x = finite_diff([h[0] for h in hs], thetas, g_state, delta_angle)
         
         logging.info(f"gradients {grad_x}")
         transform_matrix = np.zeroes(12)
