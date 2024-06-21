@@ -269,7 +269,7 @@ if __name__ == "__main__":
 
         # Optimize the nuclear coordinates
         adsorbate_coords.requires_grad = True
-        from qtm.homogenous_transformation import HomogenousTransformation
+        from qtm.homogeneous_transformation import HomogenousTransformation
         ht = HomogenousTransformation()
         thetas.requires_grad = False
         delta_angle = np.pi / 180
