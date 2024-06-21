@@ -200,14 +200,14 @@ def finite_diff(hs, theta, state, delta_theta=0.01, delta_xyz=0.01):
     """Compute the central-difference finite difference of a function
     x: coordinates, thetas is the rotational angles
     """
-    theta_x_grad = (run_circuit(hs[0] - hs[1]) * (0.5*delta_theta**-1)
-    theta_y_grad = (hs[2] - hs[3]) * (0.5*delta_theta**-1)
-    theta_z_grad = (hs[4] - hs[5]) * (0.5*delta_theta**-1)
-    x_grad = (hs[6] - hs[7]) * (0.5*delta_xyz**-1)
-    y_grad = (hs[8] - hs[9]) * (0.5*delta_xyz**-1)
-    z_grad = (hs[10] - hs[11]) * (0.5*delta_xyz**-1)
+    theta_x_grad = (run_circuit(hs[0]) - run_circuit(hs[1])) * (0.5*delta_theta**-1)
+    theta_y_grad = (run_circuit(hs[2]) - run_circuit(hs[3])) * (0.5*delta_theta**-1)
+    theta_z_grad = (run_circuit(hs[4]) - run_circuit(hs[5])) * (0.5*delta_theta**-1)
+    x_grad = (run_circuit(hs[6]) - run_circuit(hs[7])) * (0.5*delta_xyz**-1)
+    y_grad = (run_circuit(hs[8]) - run_circuit(hs[9])) * (0.5*delta_xyz**-1)
+    z_grad = (run_circuit(hs[10]) - run_circuit(hs[11])) * (0.5*delta_xyz**-1)
 
-    return np.array([theta_x_grad, theta_y_grad, theta_z_grad, x_grad, y_grad, z_grad]))
+    return np.array([theta_x_grad, theta_y_grad, theta_z_grad, x_grad, y_grad, z_grad])
 
 
 def loss_f(thetas, coords):
