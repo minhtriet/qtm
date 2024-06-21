@@ -196,18 +196,18 @@ def prepare_H(coords):
 opt_theta = qml.GradientDescentOptimizer(stepsize=0.4)
 
 
-def finite_diff(hs, theta, state, delta=0.01):
+def finite_diff(hs, theta, state, delta_theta=0.01, delta_xyz=0.01):
     """Compute the central-difference finite difference of a function
     x: coordinates, thetas is the rotational angles
     """
-    gradient = []
-    # calculate the shifted coords
-    # run the circuits with the shifted coords
-    for i in range(0, len(hs), 2):
-        # grad = (run_circuit(hs[i][0], theta) + run_circuit(hs[i + 1][0], theta)) * delta**-1
-        grad = (run_circuit(hs[i][0], init_state=state) + run_circuit(hs[i + 1][0], init_state=state)) * delta**-1
-        gradient.append(grad)
-    return np.array(gradient)
+    theta_x_grad = (run_circuit(hs[0] - hs[1]) * (0.5*delta_theta**-1)
+    theta_y_grad = (hs[2] - hs[3]) * (0.5*delta_theta**-1)
+    theta_z_grad = (hs[4] - hs[5]) * (0.5*delta_theta**-1)
+    x_grad = (hs[6] - hs[7]) * (0.5*delta_xyz**-1)
+    y_grad = (hs[8] - hs[9]) * (0.5*delta_xyz**-1)
+    z_grad = (hs[10] - hs[11]) * (0.5*delta_xyz**-1)
+
+    return np.array([theta_x_grad, theta_y_grad, theta_z_grad, x_grad, y_grad, z_grad]))
 
 
 def loss_f(thetas, coords):
@@ -287,8 +287,11 @@ if __name__ == "__main__":
             logging.info(f"Energy level {run_circuit(hs[0][0], init_state=g_state)}")
         # todo get the energy of one of the hamiltonia
         grad_x = finite_diff(hs, thetas, g_state, delta_angle)
+        
         logging.info(f"gradients {grad_x}")
-        adsorbate_coords -= lr * grad_x
+        transform_matrix = np.zeroes(12)
+        transform_matrix -= lr * grad_x
+        adsorbate_coords = ht.transform(adsorbate_coords, transform_matrix)
         logging.info(f"New coordinates {adsorbate_coords}")
 
         # angle.append(thetas)
