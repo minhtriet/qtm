@@ -1,40 +1,11 @@
-# ---
-# jupyter:
-#   jupytext:
-#     formats: ipynb,py:light
-#     text_representation:
-#       extension: .py
-#       format_name: light
-#       format_version: '1.5'
-#       jupytext_version: 1.16.2
-#   kernelspec:
-#     display_name: Python 3 (ipykernel)
-#     language: python
-#     name: python3
-# ---
 import copy
 import logging
+from qtm.homogeneous_transformation import HomogenousTransformation
 
 logger = logging.getLogger(__name__)
 FORMAT = "[%(filename)s:%(lineno)s - %(funcName)20s() ] %(message)s"
 logging.basicConfig(format=FORMAT)
 logging.getLogger().setLevel(logging.INFO)
-
-# # Simulating the Harber Bosch process with quantum computing
-
-# # # ! Steps
-
-# ![image.png](attachment:2b23a140-1fcd-4199-9cf4-a9c6a2231d57.png)
-
-# | C/Q | Steps according to the paper | Comments |
-# |---|---|---|
-# | C | Choose structural model of the active chemical species |  |
-# | C | Set up and optimize structures of potential intermediates | These calculations were performed using Quantum Espresso, perhaps we can do https://pennylane.ai/qml/demos/tutorial_mol_geo_opt/  |
-# | C | Molecular orbitals are then optimized for a suitably chosen Fock operator. |   |
-# | C | A four-index transformation from the atomic orbital to the molecular basis produces all integrals required for the second-quantized Hamiltonian | That is the ultimate goal of the above steps, but can we skip all of them just because we can generate a good enough Hamiltonian? |
-# | Q | Calculate the ground state energy of the Hamiltonian |  |
-# | C | Correct the energy by considering nuclear motion effects to yield enthalpic and entropic quantities at a given temperature according to DFT |  |
-# | C | The temperature-corrected energy differences between stable intermediates and transition structures then enter rate expressions for kinetic modeling | |
 
 # ## Structure generation
 
@@ -246,8 +217,8 @@ if __name__ == "__main__":
         [os.remove(hdf5) for hdf5 in os.listdir(".") if hdf5.endswith(".hdf5")]
         # Optimize the circuit parameters
         start = time.time()
-        thetas.requires_grad = True
-        adsorbate_coords.requires_grad = False
+        # thetas.requires_grad = True
+        #  adsorbate_coords.requires_grad = False
         H, _ = hamiltonian_from_coords(adsorbate_coords)
         # fixme re-enable the optimize later
         value, state = np.linalg.eig(qml.matrix(H))
@@ -258,8 +229,7 @@ if __name__ == "__main__":
         logging.info(f"Done theta, starting coordinates {time.time()- start}")
 
         # Optimize the nuclear coordinates
-        adsorbate_coords.requires_grad = True
-        from qtm.homogeneous_transformation import HomogenousTransformation
+        # adsorbate_coords.requires_grad = True
         ht = HomogenousTransformation()
         thetas.requires_grad = False
         delta_angle = np.pi / 180
