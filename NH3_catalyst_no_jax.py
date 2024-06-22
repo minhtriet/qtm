@@ -198,12 +198,13 @@ if __name__ == "__main__":
 
     # store the values of the cost function
     thetas = np.random.normal(0, np.pi, total_single_double_gates)
-    max_iterations = 10
+    max_iterations = 100
     delta_angle = 0.01
 
     # store the values of the circuit parameter
     angle = []
     coords = []
+    energies = []
 
     # debug the moving away
     # init cooridation
@@ -226,6 +227,10 @@ if __name__ == "__main__":
         smallest_i = np.argmin(value)
         g_energy, g_state = value[smallest_i], state[smallest_i]
         g_state /= np.linalg.norm(g_state)
+        energies.append(run_circuit(H, init_state=g_state))
+        # early stopping
+        if len(energies) > 2 and np.abs(energies[-1]-energies[-2]) < 1e-5:
+            break
         # thetas, _ = opt_theta.step(loss_f, thetas, adsorbate_coords)
         logging.info(f"Done theta, starting coordinates {time.time()- start}")
 
@@ -263,12 +268,10 @@ if __name__ == "__main__":
         transform_matrix -= lr * grad_x
         adsorbate_coords = ht.transform(adsorbate_coords, *transform_matrix)
         logging.info(f"New coordinates {adsorbate_coords}")
-
         # angle.append(thetas)
         coords.append(adsorbate_coords.tolist())
 
-    print(coords)
-    print(angle)
-
     with open('coords.txt', 'w') as filehandle:
         json.dump(coords, filehandle)
+    with open('energies.txt', 'w') as filehandle:
+        json.dump(energies, filehandle)
