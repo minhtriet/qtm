@@ -9,3 +9,4 @@ nglview
 rdkit
 jax
 optax
+ffmpeg  # animation
