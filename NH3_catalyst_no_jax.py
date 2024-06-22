@@ -193,12 +193,12 @@ if __name__ == "__main__":
     adsorbate_coords = np.array(molecule["coords"])
     _, __, singles, doubles = prepare_H(adsorbate_coords)
     total_single_double_gates = len(singles) + len(doubles)
-    lr = 1e-5
+    lr = 1e-3
     logging.info(f"New coordinates {adsorbate_coords}")
 
     # store the values of the cost function
     thetas = np.random.normal(0, np.pi, total_single_double_gates)
-    max_iterations = 100
+    max_iterations = 10
     delta_angle = 0.01
 
     # store the values of the circuit parameter
