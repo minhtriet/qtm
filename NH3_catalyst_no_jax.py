@@ -193,7 +193,7 @@ if __name__ == "__main__":
     adsorbate_coords = np.array(molecule["coords"])
     _, __, singles, doubles = prepare_H(adsorbate_coords)
     total_single_double_gates = len(singles) + len(doubles)
-    lr = 1e-3
+    lr = 5e-2
     logging.info(f"New coordinates {adsorbate_coords}")
 
     # store the values of the cost function
@@ -227,7 +227,7 @@ if __name__ == "__main__":
         smallest_i = np.argmin(value)
         g_energy, g_state = value[smallest_i], state[smallest_i]
         g_state /= np.linalg.norm(g_state)
-        energies.append(run_circuit(H, init_state=g_state))
+        energies.append(float(run_circuit(H, init_state=g_state)))
         # early stopping
         if len(energies) > 2 and np.abs(energies[-1]-energies[-2]) < 1e-5:
             break
@@ -270,7 +270,6 @@ if __name__ == "__main__":
         logging.info(f"New coordinates {adsorbate_coords}")
         # angle.append(thetas)
         coords.append(adsorbate_coords.tolist())
-
     with open('coords.txt', 'w') as filehandle:
         json.dump(coords, filehandle)
     with open('energies.txt', 'w') as filehandle:
