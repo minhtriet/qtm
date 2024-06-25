@@ -65,19 +65,6 @@ molecule = chem_config.NH2
 active_electrons = molecule["active_electrons"]
 active_orbitals = molecule["active_orbitals"]
 electrons = molecule["electrons"]
-orbitals = molecule["orbitals"]
-# Let's visualize!
-
-fe_lattice = Atoms(
-    f"FeFeFeFeFe{''.join(molecule['symbols'])}",
-    np.concatenate(
-        [
-            [chem_config.Fe],
-            np.reshape(molecule["coords"], (-1, 3)),
-        ],
-    ),
-)
-
 
 # # ## ! New define Hamitonian
 
@@ -98,11 +85,11 @@ def create_pyscf_representation(symbols, coords):
     return [[symbols[i], coords[i]] for i in range(len(symbols))]
 
 
-symbols = ["Fe", "Fe", "Fe", "Fe", "Fe"] + molecule["symbols"]
+symbols = chem_config.Fe['symbols'] + molecule["symbols"]
 
 
 def hamiltonian_from_coords(coords):
-    base_coords = fe_top + fe_bottom + fe_climbing + fe_bridge + fe_trough
+    base_coords = chem_config.Fe['coords']
     coordinates = np.append(base_coords, coords)
     H, qubits = qchem.molecular_hamiltonian(
         symbols,
