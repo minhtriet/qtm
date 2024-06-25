@@ -178,7 +178,7 @@ if __name__ == "__main__":
 
     # store the values of the cost function
     thetas = np.random.normal(0, np.pi, total_single_double_gates)
-    max_iterations = 100
+    max_iterations = 20
     delta_angle = 0.01
 
     # store the values of the circuit parameter
@@ -218,7 +218,7 @@ if __name__ == "__main__":
         # adsorbate_coords.requires_grad = True
         ht = HomogenousTransformation()
         thetas.requires_grad = False
-        delta_angle = np.pi / 180
+        delta_angle = np.pi / 90
         delta_coord = 0.1
         # all possible transformations
         transformations = [[delta_angle, 0, 0, 0, 0, 0],
@@ -237,7 +237,7 @@ if __name__ == "__main__":
             
         # .unique()   # unique to reduce the rotation for single atoms, since it doesn't change
         start = time.time()
-        with get_context("spawn").Pool() as p:
+        with get_context("spawn").Pool(6) as p:
             hs = p.map(hamiltonian_from_coords, shifted_coords)
             # Each hs[i] contains coordinates and the corresponding H
             logging.info(f"Energy level {run_circuit(hs[0][0], init_state=g_state)}")
