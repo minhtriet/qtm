@@ -61,13 +61,6 @@ h2_x = np.random.uniform(0, 1.1, [6])  # three values for H2
 h2_y = np.random.uniform(-0.1, 1.1, [6])
 h2_z = np.random.uniform(0.2, 0.6, [6])
 
-fe_top = [1.0, 0.0, 0.50]
-fe_bottom = [0.69, 0.14, 0.36]
-fe_climbing = [0.63, 0.58, 0.44]
-fe_bridge = [0.7, 1.0, 0.44]
-fe_trough = [0.59, 0.5, 0.31]
-
-
 molecule = chem_config.NH2
 active_electrons = molecule["active_electrons"]
 active_orbitals = molecule["active_orbitals"]
@@ -79,7 +72,7 @@ fe_lattice = Atoms(
     f"FeFeFeFeFe{''.join(molecule['symbols'])}",
     np.concatenate(
         [
-            [fe_top, fe_bottom, fe_climbing, fe_bridge, fe_trough],
+            [chem_config.Fe],
             np.reshape(molecule["coords"], (-1, 3)),
         ],
     ),
