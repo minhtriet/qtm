@@ -173,7 +173,7 @@ if __name__ == "__main__":
     adsorbate_coords = np.array(molecule["coords"])
     _, __, singles, doubles = prepare_H(adsorbate_coords)
     total_single_double_gates = len(singles) + len(doubles)
-    lr = 5e-3
+    lr = 1e-4
     logging.info(f"New coordinates {adsorbate_coords}")
 
     # store the values of the cost function
