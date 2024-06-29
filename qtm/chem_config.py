@@ -53,6 +53,13 @@ Fe = {
     "symbols": ["Fe", "Fe", "Fe", "Fe", "Fe", "Fe", "Fe", "Fe"]
 }
 
+_3N_step1 = {
+    "coords": [2,1,2,
+               2,2,2,
+               2,3,2],
+    "symbols": ["N", "N", "N"]
+}
+
 fe_top = [1.0, 0.0, 0.50]
 fe_bottom = [0.69, 0.14, 0.36]
 fe_climbing = [0.63, 0.58, 0.44]
