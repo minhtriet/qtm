@@ -1,6 +1,10 @@
 import logging
 from qtm.homogeneous_transformation import HomogenousTransformation
 import json
+
+
+logging.basicConfig(level = logging.INFO)
+
 import time
 import os
 from multiprocessing import get_context
@@ -11,37 +15,6 @@ from pennylane import qchem
 from tqdm import tqdm
 
 import qtm.chem_config as chem_config
-
-logger = logging.getLogger(__name__)
-FORMAT = "[%(filename)s:%(lineno)s - %(funcName)20s() ] %(message)s"
-logging.basicConfig(format=FORMAT)
-logging.getLogger().setLevel(logging.INFO)
-
-
-# According to [Fig 1. in this paper](https://pubs.rsc.org/en/content/getauthorversionpdf/c9cp01611b), the config of $Fe$ lattice is
-#
-# > Fe coordinate
-# > - the top site corresponds to (1.0, 0.0, 0.50)
-# > - the bottom site corresponds to (0.69, 0.14, 0.36)
-# > - the climbing site corresponds to (0.63, 0.58, 0.44)
-# > - the bridge site corresponds to (0.7, 1.0, 0.44)
-# > - the trough site corresponds to (0.59, 0.50, 0.31)
-# >
-# > Binding preference location
-# > - H prefers the bridge (0.71 eV) and top sites (0.62-0.70eV),
-# > - N prefers the bottom sites (1.06 eV) and the trough sites (1.53 eV),
-# > - NH prefers the bottom site with the H opposite the first layer Fe atoms to minimize vdW repulsion (0.92 eV),
-# > - NH2 prefers the climbing site (0.70 eV), and
-# > - NH3 prefers the top site (0.49 eV)
-#
-# Always 4 $N$ in Fig 3
-
-
-# in case we have to load from SDMol
-# sd_supplier = SDMolSupplier("Structure2D_COMPOUND_CID_123329.sdf")
-#
-# for mol in sd_supplier:
-#     logging.info(rdmolfiles.MolToXYZBlock(mol))
 
 
 np.random.seed(17)
@@ -57,19 +30,6 @@ molecule = chem_config.NH2
 active_electrons = molecule["active_electrons"]
 active_orbitals = molecule["active_orbitals"]
 electrons = molecule["electrons"]
-
-# # ## ! New define Hamitonian
-
-# Fe:
-# - $4s2:\uparrow \downarrow$
-# - $3d6:\uparrow \downarrow,\uparrow,\uparrow,\uparrow,\uparrow $
-#
-# Therefore there are four active oribitals
-#
-# > Defining a chemically meaningful active space depends on the problem and usually requires some experience.
-# [Source](https://discuss.pennylane.ai/t/co2-active-electrons-orbitals/1589/2)
-
-# NH2 and Fe
 
 
 def create_pyscf_representation(symbols, coords):
@@ -87,23 +47,14 @@ def hamiltonian_from_coords(coords):
         symbols,
         coordinates,
         method="openfermion",
-        active_electrons=active_electrons,
-        active_orbitals=active_orbitals,
-        mult=1 + molecule["unpaired_e"],
+        active_electrons=active_electrons + 1, # +1 for 3N
+        active_orbitals=active_orbitals + 1, # +1 for 3N
+        mult=1 + molecule["unpaired_e"] + 3,  # +3 for 3N
     )
     return H, qubits
 
 
-# ### Geometry optimization
-#
-# I am planning to use a pure quantum method rather than the classical way.
-# - Build the parametrized electronic Hamiltonian H(x) of the molecule.
-# - Design the variational quantum circuit to prepare the electronic trial state $|\Psi(\theta)⟩$
-# - Define the cost function $⟨\Psi(\theta)|H|\Psi(\theta)⟩$
-# - Optimize for $\theta$
 
-
-# #### Create circuit
 def run_circuit(H, params=None, init_state=None):
     dev = qml.device("lightning.qubit", wires=len(H.wires))
 
@@ -178,10 +129,12 @@ def loss_f(thetas, coords):
 # #### Optimize
 if __name__ == "__main__":
     # prepare for the 1st run
-    adsorbate_coords = np.array(molecule["coords"])
+    adsorbate_coords = np.array(molecule["coords"]+chem_config._3N_step1['coords'])
+    logging.info("Preparing molecule first run")
+
     _, __, singles, doubles = prepare_H(adsorbate_coords)
     total_single_double_gates = len(singles) + len(doubles)
-    lr = 5e-3
+    lr = 1e-4
     logging.info(f"New coordinates {adsorbate_coords}")
 
     # store the values of the cost function
