@@ -10,3 +10,4 @@ rdkit
 jax
 optax
 ffmpeg  # animation
+ruff

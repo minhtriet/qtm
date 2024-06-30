@@ -85,11 +85,11 @@ def create_pyscf_representation(symbols, coords):
     return [[symbols[i], coords[i]] for i in range(len(symbols))]
 
 
-symbols = chem_config.Fe['symbols'] + molecule["symbols"]
+symbols = chem_config.Fe["symbols"] + molecule["symbols"]
 
 
 def hamiltonian_from_coords(coords):
-    base_coords = chem_config.Fe['coords']
+    base_coords = chem_config.Fe["coords"]
     coordinates = np.append(base_coords, coords)
     H, qubits = qchem.molecular_hamiltonian(
         symbols,
@@ -120,7 +120,11 @@ def run_circuit(H, params=None, init_state=None):
         state = qchem.hf_state(active_electrons, len(H.wires))
         singles, doubles = qchem.excitations(active_electrons, len(H.wires))
         qml.AllSinglesDoubles(
-            hf_state=state, weights=params, wires=H.wires, singles=singles, doubles=doubles
+            hf_state=state,
+            weights=params,
+            wires=H.wires,
+            singles=singles,
+            doubles=doubles,
         )
         return qml.expval(H)
 
@@ -152,12 +156,24 @@ def finite_diff(hs, theta, state, delta_theta=0.01, delta_xyz=0.01):
     """Compute the central-difference finite difference of a function
     x: coordinates, thetas is the rotational angles
     """
-    theta_x_grad = (run_circuit(hs[0], init_state=state) - run_circuit(hs[1], init_state=state)) * (0.5*delta_theta**-1)
-    theta_y_grad = (run_circuit(hs[2], init_state=state) - run_circuit(hs[3], init_state=state)) * (0.5*delta_theta**-1)
-    theta_z_grad = (run_circuit(hs[4], init_state=state) - run_circuit(hs[5], init_state=state)) * (0.5*delta_theta**-1)
-    x_grad = (run_circuit(hs[6], init_state=state) - run_circuit(hs[7], init_state=state)) * (0.5*delta_xyz**-1)
-    y_grad = (run_circuit(hs[8], init_state=state) - run_circuit(hs[9], init_state=state)) * (0.5*delta_xyz**-1)
-    z_grad = (run_circuit(hs[10], init_state=state) - run_circuit(hs[11], init_state=state)) * (0.5*delta_xyz**-1)
+    theta_x_grad = (
+        run_circuit(hs[0], init_state=state) - run_circuit(hs[1], init_state=state)
+    ) * (0.5 * delta_theta**-1)
+    theta_y_grad = (
+        run_circuit(hs[2], init_state=state) - run_circuit(hs[3], init_state=state)
+    ) * (0.5 * delta_theta**-1)
+    theta_z_grad = (
+        run_circuit(hs[4], init_state=state) - run_circuit(hs[5], init_state=state)
+    ) * (0.5 * delta_theta**-1)
+    x_grad = (
+        run_circuit(hs[6], init_state=state) - run_circuit(hs[7], init_state=state)
+    ) * (0.5 * delta_xyz**-1)
+    y_grad = (
+        run_circuit(hs[8], init_state=state) - run_circuit(hs[9], init_state=state)
+    ) * (0.5 * delta_xyz**-1)
+    z_grad = (
+        run_circuit(hs[10], init_state=state) - run_circuit(hs[11], init_state=state)
+    ) * (0.5 * delta_xyz**-1)
 
     return np.array([theta_x_grad, theta_y_grad, theta_z_grad, x_grad, y_grad, z_grad])
 
@@ -209,7 +225,7 @@ if __name__ == "__main__":
         g_state /= np.linalg.norm(g_state)
         energies.append(float(run_circuit(H, init_state=g_state)))
         # early stopping
-        if len(energies) > 2 and np.abs(energies[-1]-energies[-2]) < 1e-5:
+        if len(energies) > 2 and np.abs(energies[-1] - energies[-2]) < 1e-5:
             break
         # thetas, _ = opt_theta.step(loss_f, thetas, adsorbate_coords)
         logging.info(f"Done theta, starting coordinates {time.time()- start}")
@@ -221,20 +237,25 @@ if __name__ == "__main__":
         delta_angle = np.pi / 90
         delta_coord = 0.1
         # all possible transformations
-        transformations = [[delta_angle, 0, 0, 0, 0, 0],
-                          [-delta_angle, 0, 0, 0, 0, 0],
-                          [0, delta_angle, 0, 0, 0, 0],
-                          [0, -delta_angle, 0, 0, 0, 0],
-                          [0, 0, delta_angle, 0, 0, 0],
-                          [0, 0, -delta_angle, 0, 0, 0],
-                          [0, 0, 0, delta_coord, 0, 0],
-                          [0, 0, 0, -delta_coord, 0, 0],
-                          [0, 0, 0, 0, delta_coord, 0],
-                          [0, 0, 0, 0, -delta_coord, 0],
-                          [0, 0, 0, 0, 0, delta_coord],
-                          [0, 0, 0, 0, 0, -delta_coord]]
-        shifted_coords = [(ht.transform(adsorbate_coords, *transformation)) for transformation in transformations]
-            
+        transformations = [
+            [delta_angle, 0, 0, 0, 0, 0],
+            [-delta_angle, 0, 0, 0, 0, 0],
+            [0, delta_angle, 0, 0, 0, 0],
+            [0, -delta_angle, 0, 0, 0, 0],
+            [0, 0, delta_angle, 0, 0, 0],
+            [0, 0, -delta_angle, 0, 0, 0],
+            [0, 0, 0, delta_coord, 0, 0],
+            [0, 0, 0, -delta_coord, 0, 0],
+            [0, 0, 0, 0, delta_coord, 0],
+            [0, 0, 0, 0, -delta_coord, 0],
+            [0, 0, 0, 0, 0, delta_coord],
+            [0, 0, 0, 0, 0, -delta_coord],
+        ]
+        shifted_coords = [
+            (ht.transform(adsorbate_coords, *transformation))
+            for transformation in transformations
+        ]
+
         # .unique()   # unique to reduce the rotation for single atoms, since it doesn't change
         start = time.time()
         with get_context("spawn").Pool(6) as p:
@@ -242,7 +263,7 @@ if __name__ == "__main__":
             # Each hs[i] contains coordinates and the corresponding H
             logging.info(f"Energy level {run_circuit(hs[0][0], init_state=g_state)}")
         grad_x = finite_diff([h[0] for h in hs], thetas, g_state, delta_angle)
-        
+
         logging.info(f"gradients {grad_x}")
         transform_matrix = np.zeros(6)
         transform_matrix -= lr * grad_x
@@ -250,7 +271,7 @@ if __name__ == "__main__":
         logging.info(f"New coordinates {adsorbate_coords}")
         # angle.append(thetas)
         coords.append(adsorbate_coords.tolist())
-    with open('coords.txt', 'w') as filehandle:
+    with open("coords.txt", "w") as filehandle:
         json.dump(coords, filehandle)
-    with open('energies.txt', 'w') as filehandle:
+    with open("energies.txt", "w") as filehandle:
         json.dump(energies, filehandle)
