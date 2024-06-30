@@ -1,17 +1,6 @@
-import copy
 import logging
 from qtm.homogeneous_transformation import HomogenousTransformation
 import json
-
-logger = logging.getLogger(__name__)
-FORMAT = "[%(filename)s:%(lineno)s - %(funcName)20s() ] %(message)s"
-logging.basicConfig(format=FORMAT)
-logging.getLogger().setLevel(logging.INFO)
-
-# ## Structure generation
-
-# In[1]:
-
 import time
 import os
 from multiprocessing import get_context
@@ -19,12 +8,15 @@ from multiprocessing import get_context
 import pennylane as qml
 from pennylane import numpy as np
 from pennylane import qchem
-
-from ase import Atoms
-
 from tqdm import tqdm
 
 import qtm.chem_config as chem_config
+
+logger = logging.getLogger(__name__)
+FORMAT = "[%(filename)s:%(lineno)s - %(funcName)20s() ] %(message)s"
+logging.basicConfig(format=FORMAT)
+logging.getLogger().setLevel(logging.INFO)
+
 
 # According to [Fig 1. in this paper](https://pubs.rsc.org/en/content/getauthorversionpdf/c9cp01611b), the config of $Fe$ lattice is
 #
