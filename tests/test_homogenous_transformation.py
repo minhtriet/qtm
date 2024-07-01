@@ -11,24 +11,24 @@ from qtm.homogeneous_transformation import HomogenousTransformation
         (np.pi, 0, 0, 1, 0, 0, [0, 0, 1, 1], [1, 0, -1, 1]),
         (np.pi, np.pi, np.pi, 1, 2, 3, [0, 0, 1, 1], [1, 2, 4, 1]),
         (
-            np.pi * 0.5,
-            0,
-            0,
-            0,
-            0,
-            0,
-            [np.sqrt(2), np.sqrt(2), 0, 1],
-            [np.sqrt(2), 0, np.sqrt(2), 1],
+                np.pi * 0.5,
+                0,
+                0,
+                0,
+                0,
+                0,
+                [np.sqrt(2), np.sqrt(2), 0, 1],
+                [np.sqrt(2), 0, np.sqrt(2), 1],
         ),
         (
-            0,
-            np.pi * 0.5,
-            0,
-            0,
-            0,
-            0,
-            [np.sqrt(2), 0, np.sqrt(2), 1],
-            [np.sqrt(2), 0, -np.sqrt(2), 1],
+                0,
+                np.pi * 0.5,
+                0,
+                0,
+                0,
+                0,
+                [np.sqrt(2), 0, np.sqrt(2), 1],
+                [np.sqrt(2), 0, -np.sqrt(2), 1],
         ),
         (np.pi * 0.5, np.pi * 0.5, 0, 0, 0, 0, [1, 1, 0, 1], [0, 1, 1, 1]),
     ],
@@ -70,3 +70,17 @@ def test_convert_to_descartes():
     received_coords = ht._convert_to_descartes(h_coords)
     expected_coords = np.array([1, 5, 9, 2, 6, 10, 3, 7, 11, 4, 8, 12])
     assert (received_coords == expected_coords).all()
+
+
+@pytest.mark.parametrize(
+    "symbol, length", [
+        ("NH3", 12),
+        ("H2", 6),
+        ("NH2", 9),
+        ("CaCO3", 15),
+    ]
+)
+def test_symbol_to_length_coords(symbol, length):
+    ht = HomogenousTransformation
+    received_length = ht._symbol_to_length_coords(symbol)
+    assert (received_length == length)

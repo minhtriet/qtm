@@ -14,6 +14,21 @@ NH2 = {
     "symbols": ["N", "H", "H"]
 }
 
+_N1_step1 = {
+    "coords": [2,1,2],
+    "symbols": ["N"]
+}
+
+_N2_step1 = {
+    "coords": [2,2,2],
+    "symbols": ["N"]
+}
+
+_N3_step1 = {
+    "coords": [2, 3, 2],
+    "symbols": ["N"]
+}
+
 NH = {   # todo not finished
     "electrons": 1 + 7,  # H + N
     "orbitals": 1 + 1 + 1 + 3,  # (1s1) + (1s2 + 2s2 + 2p3)
@@ -53,15 +68,3 @@ Fe = {
     "symbols": ["Fe", "Fe", "Fe", "Fe", "Fe", "Fe", "Fe", "Fe"]
 }
 
-_3N_step1 = {
-    "coords": [2,1,2,
-               2,2,2,
-               2,3,2],
-    "symbols": ["N", "N", "N"]
-}
-
-fe_top = [1.0, 0.0, 0.50]
-fe_bottom = [0.69, 0.14, 0.36]
-fe_climbing = [0.63, 0.58, 0.44]
-fe_bridge = [0.7, 1.0, 0.44]
-fe_trough = [0.59, 0.5, 0.31]
