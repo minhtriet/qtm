@@ -8,6 +8,7 @@ from qtm.homogeneous_transformation import HomogenousTransformation
     "angle_x, angle_y, angle_z, t_x, t_y, t_z, point, expected",
     [
         (0, 0, 0, 1, 2, 3, [1, 2, 3, 1], [2, 4, 6, 1]),
+        (0, 0, 0, 0, 0, 0, [99, 99, 99, 1], [99, 99, 99, 1]),
         (np.pi, 0, 0, 1, 0, 0, [0, 0, 1, 1], [1, 0, -1, 1]),
         (np.pi, np.pi, np.pi, 1, 2, 3, [0, 0, 1, 1], [1, 2, 4, 1]),
         (

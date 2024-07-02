@@ -37,6 +37,8 @@ def create_pyscf_representation(symbols, coords):
 
 
 def hamiltonian_from_coords(symbols, coords):
+    if coords is None:
+        return None, None
     base_coords = chem_config.Fe["coords"]
     coordinates = np.append(base_coords, coords)
     H, qubits = qchem.molecular_hamiltonian(
@@ -70,7 +72,8 @@ def run_circuit(H, params=None, init_state=None):
     def circuit_state():
         qml.StatePrep(init_state, H.wires)
         return qml.expval(H)
-
+    if H is None:
+        return 0
     if init_state is not None:
         return circuit_state()
     elif params:
@@ -143,12 +146,12 @@ if __name__ == "__main__":
     symbols = reduce(lambda x, y: x+y, [x['symbols'] for x in molecules])
 
     logging.info("Preparing molecule first run")
-    # _, __, singles, doubles = prepare_H(symbols, adsorbate_coords)
-    # total_single_double_gates = len(singles) + len(doubles)
-    # logging.info(f"New coordinates {adsorbate_coords}")
+    _, __, singles, doubles = prepare_H(symbols, adsorbate_coords)
+    total_single_double_gates = len(singles) + len(doubles)
+    logging.info(f"New coordinates {adsorbate_coords}")
 
     # store the values of the cost function
-    # thetas = np.random.normal(0, np.pi, total_single_double_gates)
+    thetas = np.random.normal(0, np.pi, total_single_double_gates)
 
     # store the values of the circuit parameter
     angle = []
@@ -159,13 +162,13 @@ if __name__ == "__main__":
         [os.remove(hdf5) for hdf5 in os.listdir(".") if hdf5.endswith(".hdf5")]
         # Optimize the circuit parameters
         start = time.time()
-        # H, _ = hamiltonian_from_coords(symbols, adsorbate_coords)
-        # # fixme now using eigen values, but later use theta for Double/Single excitation
-        # value, state = np.linalg.eig(qml.matrix(H))
-        # smallest_i = np.argmin(value)
-        # g_energy, g_state = value[smallest_i], state[smallest_i]
-        # g_state /= np.linalg.norm(g_state)
-        # energies.append(float(run_circuit(H, init_state=g_state)))
+        H, _ = hamiltonian_from_coords(symbols, adsorbate_coords)
+        # fixme now using eigen values, but later use theta for Double/Single excitation
+        value, state = np.linalg.eig(qml.matrix(H))
+        smallest_i = np.argmin(value)
+        g_energy, g_state = value[smallest_i], state[smallest_i]
+        g_state /= np.linalg.norm(g_state)
+        energies.append(float(run_circuit(H, init_state=g_state)))
 
         # early stopping
         if len(energies) > 2 and np.abs(energies[-1] - energies[-2]) < 1e-5:
@@ -173,17 +176,11 @@ if __name__ == "__main__":
         logging.info(f"Done theta, starting coordinates {time.time()- start}")
 
         # Optimize the nuclear coordinates
-        # adsorbate_coords.requires_grad = True
-        # thetas.requires_grad = False
+        adsorbate_coords.requires_grad = True
+        thetas.requires_grad = False
         # all possible transformations
-        # shifted_coords = [
-        #     (ht._transform(adsorbate_coords, *transformation))
-        #     for transformation in transformations
-        # ]
         shifted_coords = [ht.transform(molecules, i, adsorbate_coords, *transformation) for i, molecule in enumerate(molecules) for transformation in transformations]
-        import pdb; pdb.set_trace()
-        shifted_coords = np.unique(shifted_coords, axis=0)
-        
+
         start = time.time()
         with get_context("spawn").Pool(6) as p:
             hs = p.starmap(hamiltonian_from_coords, zip(repeat(symbols), shifted_coords))

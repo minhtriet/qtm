@@ -33,7 +33,12 @@ class HomogenousTransformation:
         Example: Reactants H2ONN has one molecule H2O and two Nitrogen
         The transformation would zero padding the `order`th molecule to generate
         0, 0, 0, ... (x_N1,y_N1,z_N1), 0, 0, 0 ..., 0, 0, 0
+
+        If the `order`th molecule has just one atom, then skip the rotation and return None.
+        None will be used in calculations of the Hamiltionian
         """
+        if (len(molecules[order]['symbols']) == 1) and ((t_x, t_y, t_z) == (0, 0, 0)):
+            return None
         # concat all prefix/suffix symbols
         prefix_symbols = np.hstack([_['symbols'] for _ in molecules[:order]]) if order > 0 else ""
         suffix_symbols = np.hstack([_['symbols'] for _ in molecules[order+1:]]) if order < len(molecules) - 1 else ""
@@ -41,8 +46,8 @@ class HomogenousTransformation:
         prefix = HomogenousTransformation._symbol_to_length_coords(prefix_symbols)
         suffix = HomogenousTransformation._symbol_to_length_coords(suffix_symbols)
 
-        unpadded_transformed = HomogenousTransformation._transform(coordinates[prefix:suffix], theta_x, theta_y, theta_z, t_x, t_y, t_z)
-        return np.pad(unpadded_transformed, (prefix, suffix), 'constant', constant_values=[0, 0])
+        unpadded_transformed = HomogenousTransformation._transform(coordinates[prefix:None if suffix == 0 else -suffix], theta_x, theta_y, theta_z, t_x, t_y, t_z)
+        return np.hstack([coordinates[:prefix], unpadded_transformed, coordinates[suffix:]])
 
     @staticmethod
     def _transform(coordinates, theta_x, theta_y, theta_z, t_x, t_y, t_z):
