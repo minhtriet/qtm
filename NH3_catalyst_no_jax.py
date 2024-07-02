@@ -181,8 +181,8 @@ if __name__ == "__main__":
         #     for transformation in transformations
         # ]
         shifted_coords = [ht.transform(molecules, i, adsorbate_coords, *transformation) for i, molecule in enumerate(molecules) for transformation in transformations]
+        import pdb; pdb.set_trace()
         shifted_coords = np.unique(shifted_coords, axis=0)
-
         
         start = time.time()
         with get_context("spawn").Pool(6) as p:

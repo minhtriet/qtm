@@ -15,9 +15,7 @@ class HomogenousTransformation:
         NH2 -> 9
         CaCO3 -> 15
         """
-        if not symbol:
-            return 0
-        if isinstance(symbol, list):
+        if isinstance(symbol, list) or isinstance(symbol,np.ndarray):
             return 3*len(symbol)
         if isinstance(symbol, str):
             l = 0
@@ -37,8 +35,8 @@ class HomogenousTransformation:
         0, 0, 0, ... (x_N1,y_N1,z_N1), 0, 0, 0 ..., 0, 0, 0
         """
         # concat all prefix/suffix symbols
-        prefix_symbols = np.array([_['symbols'] for _ in molecules[:order]]).flatten()
-        suffix_symbols = np.array([_['symbols'] for _ in molecules[order+1:]]).flatten()
+        prefix_symbols = np.hstack([_['symbols'] for _ in molecules[:order]]) if order > 0 else ""
+        suffix_symbols = np.hstack([_['symbols'] for _ in molecules[order+1:]]) if order < len(molecules) - 1 else ""
         # prefix/suffix: coordinates of molecules before/after `order`
         prefix = HomogenousTransformation._symbol_to_length_coords(prefix_symbols)
         suffix = HomogenousTransformation._symbol_to_length_coords(suffix_symbols)
