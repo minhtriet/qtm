@@ -17,13 +17,16 @@ class HomogenousTransformation:
         """
         if not symbol:
             return 0
-        l = 0
-        numbers = [int(num) for num in re.split(r'[a-zA-Z]', symbol) if num.isnumeric()]
-        for number in numbers:
-            l += 3*(number - 1)
-        upper_cases = [c for c in symbol if c.isupper()]
-        l += 3*len(upper_cases)
-        return l
+        if isinstance(symbol, list):
+            return 3*len(symbol)
+        if isinstance(symbol, str):
+            l = 0
+            numbers = [int(num) for num in re.split(r'[a-zA-Z]', symbol) if num.isnumeric()]
+            for number in numbers:
+                l += 3*(number - 1)
+            upper_cases = [c for c in symbol if c.isupper()]
+            l += 3*len(upper_cases)
+            return l
 
     @staticmethod
     def transform(molecules, order, coordinates, theta_x, theta_y, theta_z, t_x, t_y, t_z):
