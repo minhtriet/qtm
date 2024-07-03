@@ -123,7 +123,7 @@ def finite_diff(hs, theta, state, delta_theta=0.01, delta_xyz=0.01):
 if __name__ == "__main__":
     delta_angle = np.pi / 90
     delta_coord = 0.1
-    max_iterations = 20
+    max_iterations = 70
     delta_angle = 0.01
     lr = 1e-4
     ht = HomogenousTransformation()
@@ -176,21 +176,24 @@ if __name__ == "__main__":
         logging.info(f"Done theta, starting coordinates {time.time()- start}")
 
         # Optimize the nuclear coordinates
-        adsorbate_coords.requires_grad = True
         thetas.requires_grad = False
         # all possible transformations
         shifted_coords = [ht.transform(molecules, i, adsorbate_coords, *transformation) for i, molecule in enumerate(molecules) for transformation in transformations]
-
+        # todo add assert ht.transforms should return len(molecules)*6
+        import pdb; pdb.set_trace()
         start = time.time()
-        with get_context("spawn").Pool(6) as p:
+        with get_context("spawn").Pool(12) as p:
             hs = p.starmap(hamiltonian_from_coords, zip(repeat(symbols), shifted_coords))
             # Each hs[i] contains coordinates and the corresponding H
             logging.info(f"Energy level {run_circuit(hs[0][0], init_state=g_state)}")
+        # todo generalize finite_diff to multiple molecules
         grad_x = finite_diff([h[0] for h in hs], thetas, g_state, delta_angle)
 
         logging.info(f"gradients {grad_x}")
-        transform_matrix = np.zeros(6)
+        transform_matrix = np.zeros(len(grad_x))
         transform_matrix -= lr * grad_x
+        for i, molecule in enumerate(molecules):
+            ht.transform(molecules
         adsorbate_coords = ht._transform(adsorbate_coords, *transform_matrix)
         logging.info(f"New coordinates {adsorbate_coords}")
         # angle.append(thetas)
