@@ -47,7 +47,9 @@ class HomogenousTransformation:
         suffix = HomogenousTransformation._symbol_to_length_coords(suffix_symbols)
 
         unpadded_transformed = HomogenousTransformation._transform(coordinates[prefix:None if suffix == 0 else -suffix], theta_x, theta_y, theta_z, t_x, t_y, t_z)
-        return np.hstack([coordinates[:prefix], unpadded_transformed, coordinates[suffix:]])
+        result = np.hstack([coordinates[:prefix], unpadded_transformed, coordinates[suffix:]])
+        assert result.shape == len(molecules)*3
+        return result
 
     @staticmethod
     def _transform(coordinates, theta_x, theta_y, theta_z, t_x, t_y, t_z):

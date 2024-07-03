@@ -12,6 +12,7 @@ from tqdm import tqdm
 
 import qtm.chem_config as chem_config
 from qtm.homogeneous_transformation import HomogenousTransformation
+from qtm.itertools_helper import batched
 
 logging.basicConfig(level = logging.INFO)
 
@@ -93,30 +94,35 @@ def prepare_H(symbols, coords):
 opt_theta = qml.GradientDescentOptimizer(stepsize=0.4)
 
 
-def finite_diff(hs, theta, state, delta_theta=0.01, delta_xyz=0.01):
+def finite_diff(hamiltonians, theta, state, delta_theta=0.01, delta_xyz=0.01):
     """Compute the central-difference finite difference of a function
+    hs: all the Hamiltonians of the molecules
     x: coordinates, thetas is the rotational angles
     """
-    theta_x_grad = (
-        run_circuit(hs[0], init_state=state) - run_circuit(hs[1], init_state=state)
-    ) * (0.5 * delta_theta**-1)
-    theta_y_grad = (
-        run_circuit(hs[2], init_state=state) - run_circuit(hs[3], init_state=state)
-    ) * (0.5 * delta_theta**-1)
-    theta_z_grad = (
-        run_circuit(hs[4], init_state=state) - run_circuit(hs[5], init_state=state)
-    ) * (0.5 * delta_theta**-1)
-    x_grad = (
-        run_circuit(hs[6], init_state=state) - run_circuit(hs[7], init_state=state)
-    ) * (0.5 * delta_xyz**-1)
-    y_grad = (
-        run_circuit(hs[8], init_state=state) - run_circuit(hs[9], init_state=state)
-    ) * (0.5 * delta_xyz**-1)
-    z_grad = (
-        run_circuit(hs[10], init_state=state) - run_circuit(hs[11], init_state=state)
-    ) * (0.5 * delta_xyz**-1)
+    batched_hs = list(batched(hamiltonians, 6*2))
+    molecular_grads = []
+    for hs in batched_hs:
+        theta_x_grad = (
+            run_circuit(hs[0], init_state=state) - run_circuit(hs[1], init_state=state)
+        ) * (0.5 * delta_theta**-1)
+        theta_y_grad = (
+            run_circuit(hs[2], init_state=state) - run_circuit(hs[3], init_state=state)
+        ) * (0.5 * delta_theta**-1)
+        theta_z_grad = (
+            run_circuit(hs[4], init_state=state) - run_circuit(hs[5], init_state=state)
+        ) * (0.5 * delta_theta**-1)
+        x_grad = (
+            run_circuit(hs[6], init_state=state) - run_circuit(hs[7], init_state=state)
+        ) * (0.5 * delta_xyz**-1)
+        y_grad = (
+            run_circuit(hs[8], init_state=state) - run_circuit(hs[9], init_state=state)
+        ) * (0.5 * delta_xyz**-1)
+        z_grad = (
+            run_circuit(hs[10], init_state=state) - run_circuit(hs[11], init_state=state)
+        ) * (0.5 * delta_xyz**-1)
+        molecular_grads.extend([theta_x_grad, theta_y_grad, theta_z_grad, x_grad, y_grad, z_grad])
 
-    return np.array([theta_x_grad, theta_y_grad, theta_z_grad, x_grad, y_grad, z_grad])
+    return molecular_grads
 
 
 # #### Optimize
@@ -145,7 +151,7 @@ if __name__ == "__main__":
     adsorbate_coords = reduce(lambda x,y: x+y, [x['coords'] for x in molecules])
     symbols = reduce(lambda x, y: x+y, [x['symbols'] for x in molecules])
 
-    logging.info("Preparing molecule first run")
+    logging.info("== Preparing molecule first run")
     _, __, singles, doubles = prepare_H(symbols, adsorbate_coords)
     total_single_double_gates = len(singles) + len(doubles)
     logging.info(f"New coordinates {adsorbate_coords}")
@@ -179,22 +185,22 @@ if __name__ == "__main__":
         thetas.requires_grad = False
         # all possible transformations
         shifted_coords = [ht.transform(molecules, i, adsorbate_coords, *transformation) for i, molecule in enumerate(molecules) for transformation in transformations]
-        # todo add assert ht.transforms should return len(molecules)*6
-        import pdb; pdb.set_trace()
         start = time.time()
         with get_context("spawn").Pool(12) as p:
             hs = p.starmap(hamiltonian_from_coords, zip(repeat(symbols), shifted_coords))
             # Each hs[i] contains coordinates and the corresponding H
             logging.info(f"Energy level {run_circuit(hs[0][0], init_state=g_state)}")
-        # todo generalize finite_diff to multiple molecules
-        grad_x = finite_diff([h[0] for h in hs], thetas, g_state, delta_angle)
 
+        logging.info("== Calculate the gradients for coordinates")
+        assert len(hs) == 2*6*len(molecules)  # each molecule has 6 dof. Need two more each for gradients
+        grad_x = finite_diff([h[0] for h in hs], thetas, g_state, delta_angle)
         logging.info(f"gradients {grad_x}")
         transform_matrix = np.zeros(len(grad_x))
         transform_matrix -= lr * grad_x
-        for i, molecule in enumerate(molecules):
-            ht.transform(molecules
-        adsorbate_coords = ht._transform(adsorbate_coords, *transform_matrix)
+
+        logging.info("== Transforming the coordinates")
+        for i in range(len(molecules)):
+            ht.transform(molecules, i, adsorbate_coords, transform_matrix[6*(i-1):6*i])
         logging.info(f"New coordinates {adsorbate_coords}")
         # angle.append(thetas)
         coords.append(adsorbate_coords.tolist())
