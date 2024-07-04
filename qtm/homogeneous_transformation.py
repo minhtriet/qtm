@@ -49,7 +49,7 @@ class HomogenousTransformation:
         unpadded_transformed = HomogenousTransformation._transform(coordinates[prefix:None if suffix == 0 else -suffix], theta_x, theta_y, theta_z, t_x, t_y, t_z)
         result = np.hstack([coordinates[:prefix], unpadded_transformed, coordinates[prefix+len(unpadded_transformed):]])
         try:
-            assert len(result) == 18
+            assert len(result) == len(coordinates)
         except:
             import pdb; pdb.set_trace()
         return result
