@@ -198,7 +198,9 @@ if __name__ == "__main__":
             ht.transform(molecules, i, adsorbate_coords, *transform_matrix[6*i:6*(i+1)])
         logging.info(f"New coordinates {adsorbate_coords}")
         # angle.append(thetas)
-        coords.append(adsorbate_coords.tolist())
+        coords.append(adsorbate_coords)
+        logging.info(f"All coords: {adsorbate_coords}")
+        logging.info(f"All energies: {energies}")
     with open("coords.txt", "w") as filehandle:
         json.dump(coords, filehandle)
     with open("energies.txt", "w") as filehandle:
