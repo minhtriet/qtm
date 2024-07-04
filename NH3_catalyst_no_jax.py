@@ -16,15 +16,7 @@ from qtm.itertools_helper import batched
 
 logging.basicConfig(level = logging.INFO)
 
-
 np.random.seed(17)
-
-# inside NH3
-n2_x = np.random.uniform(0, 1.1, [2])  # one value for N2
-
-h2_x = np.random.uniform(0, 1.1, [6])  # three values for H2
-h2_y = np.random.uniform(-0.1, 1.1, [6])
-h2_z = np.random.uniform(0.2, 0.6, [6])
 
 molecule = chem_config.NH2
 active_electrons = molecule["active_electrons"]
@@ -46,9 +38,12 @@ def hamiltonian_from_coords(symbols, coords):
         chem_config.Fe["symbols"] + symbols,
         coordinates,
         method="openfermion",
-        active_electrons=active_electrons + 1, # +1 for 3N
-        active_orbitals=active_orbitals + 1, # +1 for 3N
-        mult=1 + molecule["unpaired_e"] + 3,  # +3 for 3N
+        active_electrons=2,
+        active_orbitals=3,
+        mult=1 + 2,  # +3 for 3N
+        # active_electrons=active_electrons + 1, # +1 for 3N
+        # active_orbitals=active_orbitals + 1, # +1 for 3N
+        # mult=1 + molecule["unpaired_e"] + 3,  # +3 for 3N
     )
     return H, qubits
 
@@ -89,8 +84,6 @@ def prepare_H(symbols, coords):
     singles, doubles = qchem.excitations(active_electrons, n_qubits)
     return H, n_qubits, singles, doubles
 
-
-# ## Some manual grad calculation
 
 opt_theta = qml.GradientDescentOptimizer(stepsize=0.4)
 
@@ -149,7 +142,7 @@ if __name__ == "__main__":
         [0, 0, 0, 0, 0, -delta_coord],
     ]
     molecules = [chem_config.NH2, chem_config._N1_step1, chem_config._N2_step1, chem_config._N3_step1]
-    molecules = [chem_config._N1_step1, chem_config._N2_step1, chem_config._N3_step1]
+    molecules = [chem_config._N1_step1, chem_config._N2_step1]
     adsorbate_coords = reduce(lambda x,y: x+y, [x['coords'] for x in molecules])
     symbols = reduce(lambda x, y: x+y, [x['symbols'] for x in molecules])
 
