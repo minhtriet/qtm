@@ -123,7 +123,7 @@ def finite_diff(hamiltonians, theta, state, delta_theta=0.01, delta_xyz=0.01):
         ) * (0.5 * delta_xyz**-1)
         molecular_grads.extend([theta_x_grad, theta_y_grad, theta_z_grad, x_grad, y_grad, z_grad])
 
-    return molecular_grads
+    return np.array(molecular_grads)
 
 
 # #### Optimize
@@ -149,6 +149,7 @@ if __name__ == "__main__":
         [0, 0, 0, 0, 0, -delta_coord],
     ]
     molecules = [chem_config.NH2, chem_config._N1_step1, chem_config._N2_step1, chem_config._N3_step1]
+    molecules = [chem_config._N1_step1, chem_config._N2_step1, chem_config._N3_step1]
     adsorbate_coords = reduce(lambda x,y: x+y, [x['coords'] for x in molecules])
     symbols = reduce(lambda x, y: x+y, [x['symbols'] for x in molecules])
 
@@ -201,7 +202,7 @@ if __name__ == "__main__":
 
         logging.info("== Transforming the coordinates")
         for i in range(len(molecules)):
-            ht.transform(molecules, i, adsorbate_coords, transform_matrix[6*(i-1):6*i])
+            ht.transform(molecules, i, adsorbate_coords, *transform_matrix[6*(i-1):6*i])
         logging.info(f"New coordinates {adsorbate_coords}")
         # angle.append(thetas)
         coords.append(adsorbate_coords.tolist())
