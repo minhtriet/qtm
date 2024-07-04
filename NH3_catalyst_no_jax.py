@@ -195,7 +195,7 @@ if __name__ == "__main__":
 
         logging.info("== Transforming the coordinates")
         for i in range(len(molecules)):
-            ht.transform(molecules, i, adsorbate_coords, *transform_matrix[6*(i-1):6*i])
+            ht.transform(molecules, i, adsorbate_coords, *transform_matrix[6*i:6*(i+1)])
         logging.info(f"New coordinates {adsorbate_coords}")
         # angle.append(thetas)
         coords.append(adsorbate_coords.tolist())
