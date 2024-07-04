@@ -27,7 +27,7 @@ class HomogenousTransformation:
             return l
 
     @staticmethod
-    def transform(molecules, order, coordinates, theta_x, theta_y, theta_z, t_x, t_y, t_z):
+    def transform(molecules, order, coordinates, theta_x, theta_y, theta_z, t_x, t_y, t_z, pad=True):
         """
         Transform the n_th molecule in the reactants
         Example: Reactants H2ONN has one molecule H2O and two Nitrogen
@@ -47,12 +47,11 @@ class HomogenousTransformation:
         suffix = HomogenousTransformation._symbol_to_length_coords(suffix_symbols)
 
         unpadded_transformed = HomogenousTransformation._transform(coordinates[prefix:None if suffix == 0 else -suffix], theta_x, theta_y, theta_z, t_x, t_y, t_z)
-        result = np.hstack([coordinates[:prefix], unpadded_transformed, coordinates[prefix+len(unpadded_transformed):]])
-        try:
+        if pad:
+            result = np.hstack([coordinates[:prefix], unpadded_transformed, coordinates[prefix+len(unpadded_transformed):]])
             assert len(result) == len(coordinates)
-        except:
-            import pdb; pdb.set_trace()
-        return result
+            return result
+        return unpadded_transformed
 
     @staticmethod
     def _transform(coordinates, theta_x, theta_y, theta_z, t_x, t_y, t_z):

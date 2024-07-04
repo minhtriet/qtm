@@ -38,12 +38,9 @@ def hamiltonian_from_coords(symbols, coords):
         chem_config.Fe["symbols"] + symbols,
         coordinates,
         method="openfermion",
-        active_electrons=2,
-        active_orbitals=3,
-        mult=1 + 2,  # +3 for 3N
-        # active_electrons=active_electrons + 1, # +1 for 3N
-        # active_orbitals=active_orbitals + 1, # +1 for 3N
-        # mult=1 + molecule["unpaired_e"] + 3,  # +3 for 3N
+        active_electrons=active_electrons + 1, # +1 for 3N
+        active_orbitals=active_orbitals + 1, # +1 for 3N
+        mult=1 + molecule["unpaired_e"] + 3,  # +3 for 3N
     )
     return H, qubits
 
@@ -194,11 +191,15 @@ if __name__ == "__main__":
         transform_params -= lr * grad_x
 
         logging.info("== Transforming the coordinates")
+        new_coords = []
         for i in range(len(molecules)):
-            ht.transform(molecules, i, adsorbate_coords, *transform_params[6 * (i - 1):6 * i])
+            new_coords.extend(ht.transform(molecules, i, adsorbate_coords, *transform_params[6 * (i - 1):6 * i], pad=False))
         logging.info(f"New coordinates {adsorbate_coords}")
         # angle.append(thetas)
-        coords.append(adsorbate_coords.tolist())
+        coords.append(new_coords)
+        adsorbate_coords = new_coords
+        logging.info(f"All coords: {coords}")
+        logging.info(f"All energies: {energies}")
     with open("coords.txt", "w") as filehandle:
         json.dump(coords, filehandle)
     with open("energies.txt", "w") as filehandle:
