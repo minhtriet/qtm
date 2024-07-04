@@ -54,6 +54,8 @@ def hamiltonian_from_coords(symbols, coords):
 
 
 def run_circuit(H, params=None, init_state=None):
+    if H is None:
+        return 0
     dev = qml.device("lightning.qubit", wires=len(H.wires))
 
     @qml.qnode(dev)
@@ -73,8 +75,7 @@ def run_circuit(H, params=None, init_state=None):
     def circuit_state():
         qml.StatePrep(init_state, H.wires)
         return qml.expval(H)
-    if H is None:
-        return 0
+
     if init_state is not None:
         return circuit_state()
     elif params:
