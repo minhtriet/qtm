@@ -190,12 +190,12 @@ if __name__ == "__main__":
         assert len(hs) == 2*6*len(molecules)  # each molecule has 6 dof. Need two more each for gradients
         grad_x = finite_diff([h[0] for h in hs], thetas, g_state, delta_angle)
         logging.info(f"gradients {grad_x}")
-        transform_matrix = np.zeros(len(grad_x))
-        transform_matrix -= lr * grad_x
+        transform_params = np.zeros(len(grad_x))
+        transform_params -= lr * grad_x
 
         logging.info("== Transforming the coordinates")
         for i in range(len(molecules)):
-            ht.transform(molecules, i, adsorbate_coords, *transform_matrix[6*(i-1):6*i])
+            ht.transform(molecules, i, adsorbate_coords, *transform_params[6 * (i - 1):6 * i])
         logging.info(f"New coordinates {adsorbate_coords}")
         # angle.append(thetas)
         coords.append(adsorbate_coords.tolist())
