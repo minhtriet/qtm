@@ -32,10 +32,12 @@ def create_pyscf_representation(symbols, coords):
 def hamiltonian_from_coords(symbols, coords):
     if coords is None:
         return None, None
-    base_coords = chem_config.Fe["coords"]
+    base_coords = np.hstack([chem_config.Fe["coords"], *[x['coords'] for x in chem_config.step2_fix]])
+    base_symbols = np.hstack([chem_config.Fe["symbols"], *[x['symbols'] for x in chem_config.step2_fix]])
+    #chem_config.Fe["symbols"] + chem_config.step2_fix["coords"]
     coordinates = np.append(base_coords, coords)
     H, qubits = qchem.molecular_hamiltonian(
-        chem_config.Fe["symbols"] + symbols,
+        base_symbols + symbols,
         coordinates,
         method="openfermion",
         active_electrons=active_electrons + 1, # +1 for 3N
