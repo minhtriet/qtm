@@ -179,7 +179,7 @@ if __name__ == "__main__":
         # all possible transformations
         shifted_coords = [ht.transform(molecules, i, adsorbate_coords, *transformation) for i, molecule in enumerate(molecules) for transformation in transformations]
         start = time.time()
-        with get_context("spawn").Pool(12) as p:
+        with get_context("spawn").Pool(os.cpu_count()-4) as p:
             hs = p.starmap(hamiltonian_from_coords, zip(repeat(symbols), shifted_coords))
             # Each hs[i] contains coordinates and the corresponding H
             logging.info(f"Energy level {run_circuit(hs[0][0], init_state=g_state)}")
@@ -201,7 +201,7 @@ if __name__ == "__main__":
         adsorbate_coords = new_coords
         logging.info(f"All coords: {coords}")
         logging.info(f"All energies: {energies}")
-    with open("coords.txt", "w") as filehandle:
-        json.dump(coords, filehandle)
-    with open("energies.txt", "w") as filehandle:
-        json.dump(energies, filehandle)
+        with open("coords.txt", "w") as filehandle:
+            json.dump(coords, filehandle)
+        with open("energies.txt", "w") as filehandle:
+            json.dump(energies, filehandle)
