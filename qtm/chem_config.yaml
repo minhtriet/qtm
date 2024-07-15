@@ -8,7 +8,7 @@ steps:
       << : *catalyst
     react:
       symbols: [N, H, H]
-      coordinates:
+      coordinates: [1, 3, 4]
     config:
       active_electrons: 1
       active_orbitals: 1
@@ -17,4 +17,12 @@ steps:
   two:
     fixed:
       symbols: ${concat:${catalyst.symbols}, ${steps.one.react.symbols}}
-      coordinates: ${concat:${catalyst.symbols}, ${last_element{${load_json:artifacts,step1}}}}
+      coordinates: ${concat:${catalyst.coordinates}, ${last_element:${load_json:artifact,step1,coords.txt}}}
+    react:
+      symbols: [H, H]
+      coordinates: [1,2,3]
+    config:
+      active_electrons: 1
+      active_orbitals: 1
+      charge: 1
+      basis: "STO-3G"
