@@ -14,9 +14,7 @@ steps:
       active_orbitals: 1
       charge: 1
       basis: "STO-3G"
-    results: 
-      coordinates: [1, 2, 3]
-      energies: [1, 2, 3]
   two:
     fixed:
       symbols: ${concat:${catalyst.symbols}, ${steps.one.react.symbols}}
+      coordinates: ${concat:${catalyst.symbols}, ${last_element{${load_json:artifacts,step1}}}}
