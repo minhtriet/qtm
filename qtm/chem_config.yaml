@@ -1,0 +1,22 @@
+catalyst: &catalyst
+  symbols: [Fe, Fe, Fe, Fe, Fe]
+  coordinates: [1, 2, 3, 4, 5 ,6]
+
+steps:
+  one:
+    fixed:
+      << : *catalyst
+    react:
+      symbols: [N, H, H]
+      coordinates:
+    config:
+      active_electrons: 1
+      active_orbitals: 1
+      charge: 1
+      basis: "STO-3G"
+    results: 
+      coordinates: [1, 2, 3]
+      energies: [1, 2, 3]
+  two:
+    fixed:
+      symbols: ${concat:${catalyst.symbols}, ${steps.one.react.symbols}}

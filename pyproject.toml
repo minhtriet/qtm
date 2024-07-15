@@ -1,0 +1,22 @@
+[tool.poetry]
+name = "qtm"
+version = "0.1.0"
+description = "Explore transition material as a catalyst with quantum compututer"
+authors = ["Minh Chau"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.9"
+PennyLane = "^0.37.0"
+pyscf = "^2.6.2"
+openfermion = "^1.6.1"
+openfermionpyscf = "^0.5"
+ase = "^3.23.0"
+nglview = "^3.1.2"
+jupyterlab = "^4.2.3"
+omegaconf = "^2.3.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
