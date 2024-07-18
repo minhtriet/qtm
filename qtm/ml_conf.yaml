@@ -1,0 +1,5 @@
+delta_angle: ${div:${pi}, 90}
+delta_coord: 0.1
+max_iterations: 70
+lr: 0.0001
+

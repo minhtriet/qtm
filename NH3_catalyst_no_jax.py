@@ -123,7 +123,6 @@ if __name__ == "__main__":
     delta_angle = np.pi / 90
     delta_coord = 0.1
     max_iterations = 70
-    delta_angle = 0.01
     lr = 1e-4
     ht = HomogenousTransformation()
     transformations = [
