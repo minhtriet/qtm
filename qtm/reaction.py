@@ -4,7 +4,7 @@ from multiprocessing import Pool
 from pennylane import qchem
 
 
-class HamiltonianBuilder:
+class Reaction:
 
     def __init__(self, symbols, charge=0, mult=1, active_electrons=None, active_orbitals=None):
         self.symbols = symbols

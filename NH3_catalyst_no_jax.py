@@ -76,7 +76,7 @@ def run_circuit(H, params=None, init_state=None):
         logging.info("Optimizing for theta")
         return circuit_theta()
 
-
+# todo remove
 def prepare_H(symbols, coords):
     H, qubits = hamiltonian_from_coords(symbols, coords)
     n_qubits = len(H.wires)
