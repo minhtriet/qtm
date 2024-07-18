@@ -27,7 +27,7 @@ if __name__ == '__main__':
 
     reaction = Reaction(symbols=step_config["symbols"])
     # todo fix
-    H, qubits = reaction.partial_h(symbols)
+    H, qubits = reaction.build_hamiltonian(symbols)
     n_qubits = len(H.wires)
     singles, doubles = qchem.excitations(active_electrons, n_qubits)
     return H, n_qubits, singles, doubles

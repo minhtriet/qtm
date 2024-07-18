@@ -1,8 +1,10 @@
 import numpy as np
 from omegaconf import OmegaConf
+from pennylane import qchem
 import logging
 
 from qtm.homogeneous_transformation import HomogenousTransformation
+from qtm.reaction import Reaction
 
 logging.basicConfig(level=logging.INFO)
 
@@ -13,22 +15,13 @@ if __name__ == "__main__":
     chem_conf = OmegaConf.load("chem_config.yaml")
     ml_conf = OmegaConf.load("ml_config.yaml")
     OmegaConf.resolve(chem_conf)
-    ht = HomogenousTransformation()
-    transformations = [
-        [ml_conf.ml_conf.delta_angle, 0, 0, 0, 0, 0],
-        [-ml_conf.delta_angle, 0, 0, 0, 0, 0],
-        [0, ml_conf.delta_angle, 0, 0, 0, 0],
-        [0, -ml_conf.delta_angle, 0, 0, 0, 0],
-        [0, 0, ml_conf.delta_angle, 0, 0, 0],
-        [0, 0, -ml_conf.delta_angle, 0, 0, 0],
-        [0, 0, 0, ml_conf.delta_coord, 0, 0],
-        [0, 0, 0, -ml_conf.delta_coord, 0, 0],
-        [0, 0, 0, 0, ml_conf.delta_coord, 0],
-        [0, 0, 0, 0, -ml_conf.delta_coord, 0],
-        [0, 0, 0, 0, 0, ml_conf.delta_coord],
-        [0, 0, 0, 0, 0, -ml_conf.delta_coord],
-    ]
-    reaction = chem_conf.steps.two
+    ht = HomogenousTransformation(ml_conf['delta_angle'], ml_conf['delta_coords'])
+
+    step_config = chem_conf.get('step_to_run', None)
+    reaction = Reaction(symbols=step_config["fixed"]["symbols"], fix=step_config["react"]["symbols"])  # react should have fixed and dynamic parts
 
     logging.info("== Preparing molecule first run")
+    H, qubits = reaction.build_hamiltonian(reaction["coords"])
+    n_qubits = len(H.wires)
+    singles, doubles = qchem.excitations(step_config["active_electrons"], n_qubits)
 

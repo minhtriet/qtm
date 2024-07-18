@@ -7,6 +7,24 @@ class HomogenousTransformation:
     def __init__(self, ):
         pass
 
+    def __int__(self, delta_angle, delta_coord):
+
+        self.transformations = [
+            [delta_angle, 0, 0, 0, 0, 0],
+            [-delta_angle, 0, 0, 0, 0, 0],
+            [0, delta_angle, 0, 0, 0, 0],
+            [0, -delta_angle, 0, 0, 0, 0],
+            [0, 0, delta_angle, 0, 0, 0],
+            [0, 0, -delta_angle, 0, 0, 0],
+            # the angle part is not needed for the single atom
+            [0, 0, 0, delta_coord, 0, 0],
+            [0, 0, 0, -delta_coord, 0, 0],
+            [0, 0, 0, 0, delta_coord, 0],
+            [0, 0, 0, 0, -delta_coord, 0],
+            [0, 0, 0, 0, 0, delta_coord],
+            [0, 0, 0, 0, 0, -delta_coord],
+        ]
+
     def _symbol_to_length_coords(symbol):
         """
         :return: The length of the array needed to represent its coordinates
@@ -55,6 +73,7 @@ class HomogenousTransformation:
 
     @staticmethod
     def _transform(coordinates, theta_x, theta_y, theta_z, t_x, t_y, t_z):
+        # transform a single atom/molecule with the given coordinates and rotation angles
         homogeneous = HomogenousTransformation._convert_to_homogeneous(coordinates)
         trans_matrix = HomogenousTransformation._generate_transform_matrix(theta_x, theta_y, theta_z, t_x, t_y, t_z)
         homogeneous = trans_matrix @ homogeneous
