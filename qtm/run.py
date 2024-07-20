@@ -1,6 +1,6 @@
 import os
 import time
-
+import json
 import numpy as np
 from omegaconf import OmegaConf
 from pennylane import qchem
@@ -21,6 +21,7 @@ def _load_json(*dirs):
     with open(json_file) as f:
         js = json.load(f)
     return js
+
 def black_box(reaction, molecules, coords, transform):
     """
     Bayesian optimization will use
@@ -37,20 +38,23 @@ def black_box(reaction, molecules, coords, transform):
 
 
 if __name__ == "__main__":
+    chem_conf_path = os.path.join("qtm", "chem_config.yaml")
+    ml_conf_path = os.path.join("qtm", "ml_config.yaml")
+
     OmegaConf.register_new_resolver("concat", lambda x, y: x + y)
-    OmegaConf.resolve_new_resolver("pi", lambda : np.pi)
-    OmegaConf.resolve_new_resolver("divide", lambda x, y: x / y)
+    OmegaConf.register_new_resolver("divide", lambda x, y: x / y)
     OmegaConf.register_new_resolver("sum", lambda *numbers: sum(numbers))
     OmegaConf.register_new_resolver("load_json", _load_json)
     OmegaConf.register_new_resolver("last_element", lambda x: x[-1])
-    chem_conf = OmegaConf.load("chem_config.yaml")
+    chem_conf = OmegaConf.load(chem_conf_path)
     chem_conf._set_flag("allow_objects", True)
-    ml_conf = OmegaConf.load("ml_config.yaml")
+    ml_conf = OmegaConf.load(ml_conf_path)
     OmegaConf.resolve(chem_conf)
-    ht = HomogenousTransformation(ml_conf['delta_angle'], ml_conf['delta_coords'])
+    OmegaConf.resolve(ml_conf)
+    ht = HomogenousTransformation
 
     step_config = chem_conf["steps"][chem_conf.get('step_to_run', None)]
-    reaction = Reaction(symbols=step_config["fixed"]["symbols"] + step_config["react"]["symbols"])
+    reaction = Reaction(symbols=step_config["fixed"]["symbols"] + step_config["react"]["symbols"], coords=step_config["fixed"]["coords"] + step_config["fixed"]["coords"])
 
     optimzable_molecules = step_config["react"]["symbols"]
     optimzable_coords = step_config["react"]["coords"]
