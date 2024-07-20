@@ -7,6 +7,7 @@ class HomogenousTransformation:
     def __init__(self, ):
         pass
 
+    @staticmethod
     def _symbol_to_length_coords(symbol):
         """
         :return: The length of the array needed to represent its coordinates
