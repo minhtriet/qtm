@@ -1,26 +1,23 @@
-import os
-import time
 import json
-import numpy as np
-from omegaconf import OmegaConf
-from pennylane import qchem
-import pennylane as qml
 import logging
+import os
 
-from tqdm import tqdm
-
-from bayes_opt import BayesianOptimization
+import numpy as np
+import pennylane as qml
+from omegaconf import OmegaConf
 
 from qtm.homogeneous_transformation import HomogenousTransformation
 from qtm.reaction import Reaction
 
 logging.basicConfig(level=logging.INFO)
 
+
 def _load_json(*dirs):
     json_file = os.path.join(*dirs)
     with open(json_file) as f:
         js = json.load(f)
     return js
+
 
 def black_box(reaction, molecules, coords, transform):
     """
@@ -53,9 +50,11 @@ if __name__ == "__main__":
     OmegaConf.resolve(ml_conf)
     ht = HomogenousTransformation
 
-    step_config = chem_conf["steps"][chem_conf.get('step_to_run', None)]
-    reaction = Reaction(symbols=step_config["fixed"]["symbols"] + step_config["react"]["symbols"], coords=step_config["fixed"]["coords"] + step_config["fixed"]["coords"])
+    step_config = chem_conf["steps"][chem_conf.get("step_to_run", None)]
+    reaction = Reaction(
+        symbols=step_config["fixed"]["symbols"] + step_config["react"]["symbols"],
+        coords=step_config["fixed"]["coords"] + step_config["fixed"]["coords"],
+    )
 
     optimzable_molecules = step_config["react"]["symbols"]
     optimzable_coords = step_config["react"]["coords"]
-

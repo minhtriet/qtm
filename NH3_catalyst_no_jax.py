@@ -2,9 +2,10 @@ import json
 import logging
 import os
 import time
-from multiprocessing import get_context
 from functools import reduce
 from itertools import repeat
+from multiprocessing import get_context
+
 import pennylane as qml
 from pennylane import numpy as np
 from pennylane import qchem
@@ -14,7 +15,7 @@ import qtm.chem_config as chem_config
 from qtm.homogeneous_transformation import HomogenousTransformation
 from qtm.itertools_helper import batched
 
-logging.basicConfig(level = logging.INFO)
+logging.basicConfig(level=logging.INFO)
 
 np.random.seed(17)
 
@@ -32,16 +33,20 @@ def create_pyscf_representation(symbols, coords):
 def hamiltonian_from_coords(symbols, coords):
     if coords is None:
         return None, None
-    base_coords = np.hstack([chem_config.Fe["coords"], *[x['coords'] for x in chem_config.step2_fix]])
-    base_symbols = np.hstack([chem_config.Fe["symbols"], *[x['symbols'] for x in chem_config.step2_fix]]).tolist()
+    base_coords = np.hstack(
+        [chem_config.Fe["coords"], *[x["coords"] for x in chem_config.step2_fix]]
+    )
+    base_symbols = np.hstack(
+        [chem_config.Fe["symbols"], *[x["symbols"] for x in chem_config.step2_fix]]
+    ).tolist()
     coordinates = np.append(base_coords, coords)
 
     H, qubits = qchem.molecular_hamiltonian(
-        base_symbols +  symbols,
+        base_symbols + symbols,
         coordinates,
         method="openfermion",
-        active_electrons=active_electrons + 1, # +1 for 3N
-        active_orbitals=active_orbitals + 1, # +1 for 3N
+        active_electrons=active_electrons + 1,  # +1 for 3N
+        active_orbitals=active_orbitals + 1,  # +1 for 3N
         mult=1 + molecule["unpaired_e"] + 3,  # +3 for 3N
     )
     return H, qubits
@@ -76,6 +81,7 @@ def run_circuit(H, params=None, init_state=None):
         logging.info("Optimizing for theta")
         return circuit_theta()
 
+
 # todo remove
 def prepare_H(symbols, coords):
     H, qubits = hamiltonian_from_coords(symbols, coords)
@@ -92,7 +98,7 @@ def finite_diff(hamiltonians, theta, state, delta_theta=0.01, delta_xyz=0.01):
     hs: all the Hamiltonians of the molecules
     x: coordinates, thetas is the rotational angles
     """
-    batched_hs = list(batched(hamiltonians, 6*2))
+    batched_hs = list(batched(hamiltonians, 6 * 2))
     molecular_grads = []
     for hs in batched_hs:
         theta_x_grad = (
@@ -111,9 +117,12 @@ def finite_diff(hamiltonians, theta, state, delta_theta=0.01, delta_xyz=0.01):
             run_circuit(hs[8], init_state=state) - run_circuit(hs[9], init_state=state)
         ) * (0.5 * delta_xyz**-1)
         z_grad = (
-            run_circuit(hs[10], init_state=state) - run_circuit(hs[11], init_state=state)
+            run_circuit(hs[10], init_state=state)
+            - run_circuit(hs[11], init_state=state)
         ) * (0.5 * delta_xyz**-1)
-        molecular_grads.extend([theta_x_grad, theta_y_grad, theta_z_grad, x_grad, y_grad, z_grad])
+        molecular_grads.extend(
+            [theta_x_grad, theta_y_grad, theta_z_grad, x_grad, y_grad, z_grad]
+        )
 
     return np.array(molecular_grads)
 
@@ -140,8 +149,8 @@ if __name__ == "__main__":
         [0, 0, 0, 0, 0, -delta_coord],
     ]
     molecules = chem_config.step2
-    adsorbate_coords = reduce(lambda x,y: x+y, [x['coords'] for x in molecules])
-    symbols = reduce(lambda x, y: x+y, [x['symbols'] for x in molecules])
+    adsorbate_coords = reduce(lambda x, y: x + y, [x["coords"] for x in molecules])
+    symbols = reduce(lambda x, y: x + y, [x["symbols"] for x in molecules])
 
     logging.info("== Preparing molecule first run")
     _, __, singles, doubles = prepare_H(symbols, adsorbate_coords)
@@ -176,15 +185,23 @@ if __name__ == "__main__":
         # Optimize the nuclear coordinates
         thetas.requires_grad = False
         # all possible transformations
-        shifted_coords = [ht.transform(molecules, i, adsorbate_coords, *transformation) for i, molecule in enumerate(molecules) for transformation in transformations]
+        shifted_coords = [
+            ht.transform(molecules, i, adsorbate_coords, *transformation)
+            for i, molecule in enumerate(molecules)
+            for transformation in transformations
+        ]
         start = time.time()
-        with get_context("spawn").Pool(os.cpu_count()-4) as p:
-            hs = p.starmap(hamiltonian_from_coords, zip(repeat(symbols), shifted_coords))
+        with get_context("spawn").Pool(os.cpu_count() - 4) as p:
+            hs = p.starmap(
+                hamiltonian_from_coords, zip(repeat(symbols), shifted_coords)
+            )
             # Each hs[i] contains coordinates and the corresponding H
             logging.info(f"Energy level {run_circuit(hs[0][0], init_state=g_state)}")
 
         logging.info("== Calculate the gradients for coordinates")
-        assert len(hs) == 2*6*len(molecules)  # each molecule has 6 dof. Need two more each for gradients
+        assert len(hs) == 2 * 6 * len(
+            molecules
+        )  # each molecule has 6 dof. Need two more each for gradients
         grad_x = finite_diff([h[0] for h in hs], thetas, g_state, delta_angle)
         logging.info(f"gradients {grad_x}")
         transform_params = np.zeros(len(grad_x))
@@ -193,7 +210,15 @@ if __name__ == "__main__":
         logging.info("== Transforming the coordinates")
         new_coords = []
         for i in range(len(molecules)):
-            new_coords.extend(ht.transform(molecules, i, adsorbate_coords, *transform_params[6*i:6*(i+1)], pad=False))
+            new_coords.extend(
+                ht.transform(
+                    molecules,
+                    i,
+                    adsorbate_coords,
+                    *transform_params[6 * i : 6 * (i + 1)],
+                    pad=False,
+                )
+            )
         logging.info(f"New coordinates {adsorbate_coords}")
         # angle.append(thetas)
         coords.append(new_coords)
