@@ -49,11 +49,11 @@ class HomogenousTransformation:
             return l
 
     @staticmethod
-    def transform(molecules, coordinates, transform_params):
+    def mass_transform(molecules, coordinates, transform_params):
         """
         :param molecules:
         :param coordinates:
-        :param transforms_params:
+        :param transform_params:
         :return:
         """
         new_coords = []
@@ -79,7 +79,7 @@ class HomogenousTransformation:
         pad=True,
     ):
         """
-        Transform the n_th molecule in the reactants
+        Transform the n_th molecule in the reactants, used in gradient descent
         Example: Reactants H2ONN has one molecule H2O and two Nitrogen
         The transformation would zero padding the `order`th molecule to generate
         0, 0, 0, ... (x_N1,y_N1,z_N1), 0, 0, 0 ..., 0, 0, 0
@@ -167,13 +167,13 @@ class HomogenousTransformation:
                 [0, 0, 0, 1],
             ]
         )
-        result = homo_x @ homo_y @ homo_z
+        result = homo_x @ homo_y @ homo_z   # result is purely a rotation matrix
         # https://math.stackexchange.com/a/4397766
-        move_to_coordinate_for_rotation = [rotation_origin, 1] - result @ [
-            rotation_origin,
+        move_to_coordinate_for_rotation = [*rotation_origin, 1] - result @ [
+            *rotation_origin,
             1,
         ]
-        result[0][3] = move_to_coordinate_for_rotation[0] + t_x
+        result[0][3] = move_to_coordinate_for_rotation[0] + t_x  # result is now affine transformation matrix
         result[1][3] = move_to_coordinate_for_rotation[1] + t_y
         result[2][3] = move_to_coordinate_for_rotation[2] + t_z
         return result

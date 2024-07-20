@@ -27,7 +27,7 @@ def black_box(reaction, molecules, coords, transform):
     :param transform:
     :return: the negative of the energy, because bayesian optimization maximizes the result
     """
-    new_coords = ht.transform(molecules, coords, transform)
+    new_coords = ht.mass_transform(molecules, coords, transform)
     H, _ = reaction.build_hamiltonian(new_coords)
     # fixme now using eigen values, but later use theta for Double/Single excitation
     value, state = np.linalg.eig(qml.matrix(H))
