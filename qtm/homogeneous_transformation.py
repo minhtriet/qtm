@@ -1,11 +1,28 @@
 import numpy as np
 import re
-from functools import reduce
 
 class HomogenousTransformation:
 
     def __init__(self, ):
         pass
+
+    def __int__(self, delta_angle, delta_coord):
+
+        self.transformations = [
+            [delta_angle, 0, 0, 0, 0, 0],
+            [-delta_angle, 0, 0, 0, 0, 0],
+            [0, delta_angle, 0, 0, 0, 0],
+            [0, -delta_angle, 0, 0, 0, 0],
+            [0, 0, delta_angle, 0, 0, 0],
+            [0, 0, -delta_angle, 0, 0, 0],
+            # the angle part is not needed for the single atom
+            [0, 0, 0, delta_coord, 0, 0],
+            [0, 0, 0, -delta_coord, 0, 0],
+            [0, 0, 0, 0, delta_coord, 0],
+            [0, 0, 0, 0, -delta_coord, 0],
+            [0, 0, 0, 0, 0, delta_coord],
+            [0, 0, 0, 0, 0, -delta_coord],
+        ]
 
     @staticmethod
     def _symbol_to_length_coords(symbol):
@@ -28,6 +45,19 @@ class HomogenousTransformation:
             return l
 
     @staticmethod
+    def transform(molecules, coordinates, transform_params):
+        """
+        :param molecules:
+        :param coordinates:
+        :param transforms_params:
+        :return:
+        """
+        new_coords = []
+        for i, molecule in range(len(molecules)):
+            new_coords.append(HomogenousTransformation.transform(molecules, i, coordinates, *transform_params[i*6: (i+1)*6]))
+        return new_coords
+
+    @staticmethod
     def transform(molecules, order, coordinates, theta_x, theta_y, theta_z, t_x, t_y, t_z, pad=True):
         """
         Transform the n_th molecule in the reactants
@@ -47,7 +77,7 @@ class HomogenousTransformation:
         prefix = HomogenousTransformation._symbol_to_length_coords(prefix_symbols)
         suffix = HomogenousTransformation._symbol_to_length_coords(suffix_symbols)
 
-        unpadded_transformed = HomogenousTransformation._transform(coordinates[prefix:None if suffix == 0 else -suffix], theta_x, theta_y, theta_z, t_x, t_y, t_z)
+        unpadded_transformed = HomogenousTransformation._transform_a_molecule(coordinates[prefix:None if suffix == 0 else -suffix], theta_x, theta_y, theta_z, t_x, t_y, t_z)
         if pad:
             result = np.hstack([coordinates[:prefix], unpadded_transformed, coordinates[prefix+len(unpadded_transformed):]])
             assert len(result) == len(coordinates)
@@ -55,17 +85,20 @@ class HomogenousTransformation:
         return unpadded_transformed
 
     @staticmethod
-    def _transform(coordinates, theta_x, theta_y, theta_z, t_x, t_y, t_z):
+    def _transform_a_molecule(coordinates, theta_x, theta_y, theta_z, t_x, t_y, t_z):
+        # transform a single atom/molecule with the given coordinates and rotation angles
         homogeneous = HomogenousTransformation._convert_to_homogeneous(coordinates)
         trans_matrix = HomogenousTransformation._generate_transform_matrix(theta_x, theta_y, theta_z, t_x, t_y, t_z)
         homogeneous = trans_matrix @ homogeneous
         return HomogenousTransformation._convert_to_descartes(homogeneous)
 
     @staticmethod
-    def _generate_transform_matrix(theta_x, theta_y, theta_z, t_x, t_y, t_z):
+    def _generate_transform_matrix(theta_x, theta_y, theta_z, t_x, t_y, t_z, rotation_origin=(0,0,0)):
         """
         Construct a homogenous transformation
         """
+        # Bring the away to the origin
+
         # Create a rotation matrix for a rotation around the x-axis
         c, s = np.cos(theta_x), np.sin(theta_x)
         homo_x = np.array(
@@ -100,7 +133,11 @@ class HomogenousTransformation:
             ]
         )
         result = homo_x @ homo_y @ homo_z
-        result[0][3], result[1][3], result[2][3] = t_x, t_y, t_z
+        # https://math.stackexchange.com/a/4397766
+        move_to_coordinate_for_rotation = [rotation_origin, 1] - result@[rotation_origin, 1]
+        result[0][3] = move_to_coordinate_for_rotation[0] + t_x
+        result[1][3] = move_to_coordinate_for_rotation[1] + t_y
+        result[2][3] = move_to_coordinate_for_rotation[2] + t_z
         return result
 
     @staticmethod
