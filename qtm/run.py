@@ -6,6 +6,8 @@ import numpy as np
 import pennylane as qml
 from omegaconf import OmegaConf
 
+from bayes_opt import BayesianOptimization
+
 from qtm.homogeneous_transformation import HomogenousTransformation
 from qtm.reaction import Reaction
 
@@ -18,6 +20,9 @@ def _load_json(*dirs):
         js = json.load(f)
     return js
 
+
+def min_max(a: list):
+    return min(a), max(a)
 
 def black_box(reaction, molecules, coords, transform):
     """
@@ -56,5 +61,18 @@ if __name__ == "__main__":
         coords=step_config["fixed"]["coords"] + step_config["fixed"]["coords"],
     )
 
-    optimzable_molecules = step_config["react"]["symbols"]
-    optimzable_coords = step_config["react"]["coords"]
+    optimizable_molecules = step_config["react"]["symbols"]
+    optimizable_coords = step_config["react"]["coords"]
+
+    # define boundaries for bayesian optimization
+    x_bound = min_max(chem_conf['catalyst']['coords'][::3])
+    y_bound = min_max(chem_conf['catalyst']['coords'][1::3])
+    z_bound = (2,3)
+    angle_bound = (-np.pi, np.pi)
+
+    optimizer = BayesianOptimization(
+        f=black_box,
+        pbounds={x_bound, y_bound, z_bound, angle_bound},
+        verbose=2,
+        random_state=12,
+    )
