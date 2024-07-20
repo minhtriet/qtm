@@ -6,7 +6,7 @@ import numpy as np
 import pennylane as qml
 from omegaconf import OmegaConf
 
-from bayes_opt import BayesianOptimization
+from smac import HyperparameterOptimizationFacade, Scenario
 
 from qtm.homogeneous_transformation import HomogenousTransformation
 from qtm.reaction import Reaction
@@ -24,6 +24,7 @@ def _load_json(*dirs):
 def min_max(a: list):
     return min(a), max(a)
 
+
 def black_box(reaction, molecules, coords, transform):
     """
     Bayesian optimization will use
@@ -36,7 +37,7 @@ def black_box(reaction, molecules, coords, transform):
     H, _ = reaction.build_hamiltonian(new_coords)
     # fixme now using eigen values, but later use theta for Double/Single excitation
     value, state = np.linalg.eig(qml.matrix(H))
-    return -value
+    return value
 
 
 if __name__ == "__main__":
@@ -65,14 +66,23 @@ if __name__ == "__main__":
     optimizable_coords = step_config["react"]["coords"]
 
     # define boundaries for bayesian optimization
-    x_bound = min_max(chem_conf['catalyst']['coords'][::3])
-    y_bound = min_max(chem_conf['catalyst']['coords'][1::3])
-    z_bound = (2,3)
+    x_bound = min_max(chem_conf["catalyst"]["coords"][::3])
+    y_bound = min_max(chem_conf["catalyst"]["coords"][1::3])
+    z_bound = (2, 3)
     angle_bound = (-np.pi, np.pi)
 
-    optimizer = BayesianOptimization(
-        f=black_box,
-        pbounds={x_bound, y_bound, z_bound, angle_bound},
-        verbose=2,
-        random_state=12,
+    configspace = ConfigurationSpace(
+        {
+            "x_bound": x_bound,
+            "y_bound": y_bound,
+            "z_bound": z_bound,
+            "angle_bound": angle_bound,
+        }
     )
+
+    # Scenario object specifying the optimization environment
+    scenario = Scenario(configspace, deterministic=True, n_trials=200)
+
+    # Use SMAC to find the best configuration/hyperparameters
+    smac = HyperparameterOptimizationFacade(scenario, black_box)
+    incumbent = smac.optimize()

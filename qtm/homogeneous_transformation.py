@@ -167,13 +167,15 @@ class HomogenousTransformation:
                 [0, 0, 0, 1],
             ]
         )
-        result = homo_x @ homo_y @ homo_z   # result is purely a rotation matrix
+        result = homo_x @ homo_y @ homo_z  # result is purely a rotation matrix
         # https://math.stackexchange.com/a/4397766
         move_to_coordinate_for_rotation = [*rotation_origin, 1] - result @ [
             *rotation_origin,
             1,
         ]
-        result[0][3] = move_to_coordinate_for_rotation[0] + t_x  # result is now affine transformation matrix
+        result[0][3] = (
+            move_to_coordinate_for_rotation[0] + t_x
+        )  # result is now affine transformation matrix
         result[1][3] = move_to_coordinate_for_rotation[1] + t_y
         result[2][3] = move_to_coordinate_for_rotation[2] + t_z
         return result
