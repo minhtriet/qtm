@@ -7,6 +7,7 @@ import pennylane as qml
 from omegaconf import OmegaConf
 
 from smac import HyperparameterOptimizationFacade, Scenario
+from ConfigSpace import Configuration, ConfigurationSpace, Float
 
 from qtm.homogeneous_transformation import HomogenousTransformation
 from qtm.reaction import Reaction
@@ -23,6 +24,10 @@ def _load_json(*dirs):
 
 def min_max(a: list):
     return min(a), max(a)
+
+
+def add_tuple(t1: tuple, t2: tuple) -> tuple:
+    return tuple(sum(x) for x in zip(t1,t2))
 
 
 def black_box(reaction, molecules, coords, transform):
@@ -66,19 +71,25 @@ if __name__ == "__main__":
     optimizable_coords = step_config["react"]["coords"]
 
     # define boundaries for bayesian optimization
-    x_bound = min_max(chem_conf["catalyst"]["coords"][::3])
-    y_bound = min_max(chem_conf["catalyst"]["coords"][1::3])
+    x_bound = add_bound(min_max(chem_conf["catalyst"]["coords"][::3]))
+    y_bound = add_bound(min_max(chem_conf["catalyst"]["coords"][1::3]))
     z_bound = (2, 3)
     angle_bound = (-np.pi, np.pi)
 
-    configspace = ConfigurationSpace(
+    cs = ConfigurationSpace(
         {
-            "x_bound": x_bound,
-            "y_bound": y_bound,
-            "z_bound": z_bound,
-            "angle_bound": angle_bound,
+            "x": Float("x", x_bound),
+            "y": Float("y", y_bound),
+            "z": Float("z", z_bound),
+            "angle_x": angle_bound,
+            "angle_y": angle_bound,
+            "angle_z": angle_bound,
         }
     )
+    base_name = ["x", "y", "z", "theta_x", "theta_y", "theta_z")
+    for m in optimizable_molecules:
+        for name in base_name:
+            cs.add_hyperparameters([Float("x", (-5, 5))])
 
     # Scenario object specifying the optimization environment
     scenario = Scenario(configspace, deterministic=True, n_trials=200)
