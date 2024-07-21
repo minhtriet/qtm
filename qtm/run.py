@@ -71,28 +71,26 @@ if __name__ == "__main__":
     optimizable_coords = step_config["react"]["coords"]
 
     # define boundaries for bayesian optimization
-    x_bound = add_bound(min_max(chem_conf["catalyst"]["coords"][::3]))
-    y_bound = add_bound(min_max(chem_conf["catalyst"]["coords"][1::3]))
+    x_bound = add_tuple(min_max(chem_conf["catalyst"]["coords"][::3]), (-1,1))
+    y_bound = add_tuple(min_max(chem_conf["catalyst"]["coords"][1::3]), (-1, 1))
     z_bound = (2, 3)
     angle_bound = (-np.pi, np.pi)
 
-    cs = ConfigurationSpace(
-        {
-            "x": Float("x", x_bound),
-            "y": Float("y", y_bound),
-            "z": Float("z", z_bound),
-            "angle_x": angle_bound,
-            "angle_y": angle_bound,
-            "angle_z": angle_bound,
-        }
-    )
-    base_name = ["x", "y", "z", "theta_x", "theta_y", "theta_z")
-    for m in optimizable_molecules:
-        for name in base_name:
-            cs.add_hyperparameters([Float("x", (-5, 5))])
+    bound_config = {
+        "x": x_bound,
+        "y": y_bound,
+        "z": z_bound,
+        "theta_x": angle_bound,
+        "theta_y": angle_bound,
+        "theta_z": angle_bound,
+    }
+    cs = ConfigurationSpace()
+    for i, m in enumerate(optimizable_molecules):
+        for name, bound in bound_config.items():
+            cs.add_hyperparameters([Float(f"{name}_{m}_{i}", bound)])
 
     # Scenario object specifying the optimization environment
-    scenario = Scenario(configspace, deterministic=True, n_trials=200)
+    scenario = Scenario(cs, deterministic=True, n_trials=200)
 
     # Use SMAC to find the best configuration/hyperparameters
     smac = HyperparameterOptimizationFacade(scenario, black_box)
