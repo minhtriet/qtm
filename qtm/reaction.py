@@ -8,15 +8,21 @@ from pennylane import qchem
 class Reaction:
     def __init__(
         self,
-        symbols,
-        coords,
+        fix_symbols,
+        react_symbols,
+        fix_coords,
+        react_coords,
         charge=0,
         mult=1,
         active_electrons=None,
         active_orbitals=None,
     ):
-        self.symbols = symbols
-        self.coords = coords
+        self.symbols = fix_symbols + react_symbols
+        self.coords = fix_coords + react_coords
+        self.fix_symbols = fix_symbols
+        self.fix_coords = fix_coords
+        self.react_symbols = react_symbols
+        self.react_coords = react_coords
         self.charge = charge
         self.mult = mult
         self.active_electrons = active_electrons

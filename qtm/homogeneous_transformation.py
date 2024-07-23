@@ -1,5 +1,7 @@
 import re
+import logging
 
+logging.getLogger().setLevel(logging.INFO)
 import numpy as np
 
 
@@ -56,6 +58,7 @@ class HomogenousTransformation:
         :param transform_params:
         :return:
         """
+        logging.info(f"mass_transform {transform_params}")
         new_coords = []
         for i, molecule in range(len(molecules)):
             new_coords.append(
