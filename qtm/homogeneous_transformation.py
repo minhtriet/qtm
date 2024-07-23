@@ -60,7 +60,7 @@ class HomogenousTransformation:
         """
         logging.info(f"mass_transform {transform_params}")
         new_coords = []
-        for i, molecule in range(len(molecules)):
+        for i, molecule in enumerate(molecules):
             new_coords.append(
                 HomogenousTransformation.transform(
                     molecules, i, coordinates, *transform_params[i * 6 : (i + 1) * 6]
@@ -87,17 +87,18 @@ class HomogenousTransformation:
         The transformation would zero padding the `order`th molecule to generate
         0, 0, 0, ... (x_N1,y_N1,z_N1), 0, 0, 0 ..., 0, 0, 0
 
+        # todo before :param: molecule is a dict of keys 'symbols' and 'coordinates', may be it should be only a str
         If the `order`th molecule has just one atom, then skip the rotation and return None.
         None will be used in calculations of the Hamiltionian
         """
-        if (len(molecules[order]["symbols"]) == 1) and ((t_x, t_y, t_z) == (0, 0, 0)):
+        if (len(molecules[order]) == 1) and ((t_x, t_y, t_z) == (0, 0, 0)):
             return None
-        # concat all prefix/suffix symbols
+        # concat all prefix/suffix symbols, which are all the molecules / atom behind / after :param: order
         prefix_symbols = (
-            np.hstack([_["symbols"] for _ in molecules[:order]]) if order > 0 else ""
+            np.hstack([_ for _ in molecules[:order]]) if order > 0 else ""
         )
         suffix_symbols = (
-            np.hstack([_["symbols"] for _ in molecules[order + 1 :]])
+            np.hstack([_ for _ in molecules[order + 1 :]])
             if order < len(molecules) - 1
             else ""
         )

@@ -17,20 +17,20 @@ class BayesianOptimizer:
         self.param_names = []
         for i, m in enumerate(self.reaction.react_symbols):
             for name, bound in bound_config.items():
+                self.param_names.append(f"{name}_{m}_{i}")
                 if (len(m) == 1) and (name.startswith("theta")):
                     # just atom, no need to optimization for rotation
                     continue
                 else:
                     self.cs.add([Float(f"{name}_{m}_{i}", bound)])
-                self.param_names.append(f"{name}_{m}_{i}")
 
-    def black_box(self, seed):
+    def black_box(self, config: Configuration, seed):
         """
         Define the function to run the optimization
         :return:
         """
         ht = HomogenousTransformation
-        params = [self.cs.get(name, 0) for name in self.param_names if self.cs[name]]
+        params = [config.get(name, 0) for name in self.param_names]
         new_coords = ht.mass_transform(self.reaction.react_symbols,
                                        self.reaction.react_coords,
                                        params)
@@ -38,18 +38,3 @@ class BayesianOptimizer:
         # fixme now using eigen values, but later use theta for Double/Single excitation
         value, state = np.linalg.eig(qml.matrix(H))
         return value
-
-    def train(self):
-        """
-        Bayesian optimization will use
-        :param reaction:
-        :param optimizable_coords:
-        :param transform:
-        :return: the negative of the energy, because bayesian optimization maximizes the result
-        """
-        scenario = Scenario(self.cs, deterministic=True, n_trials=4, n_workers=1)
-        # scenario = Scenario(self.cs, deterministic=True, n_trials=4, n_workers=os.cpu_count()-4)
-        smac = BlackBoxFacade(scenario, self.black_box, dask_client=None)
-        incumbent = smac.optimize()
-        print(incumbent)
-
