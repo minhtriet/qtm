@@ -77,9 +77,8 @@ if __name__ == "__main__":
 
 
     bo = BayesianOptimizer(bound_config, reaction)
-    scenario = Scenario(bo.cs, deterministic=True, n_trials=4, n_workers=1)
-
-    # scenario = Scenario(self.cs, deterministic=True, n_trials=4, n_workers=os.cpu_count()-4)
+    # scenario = Scenario(bo.cs, deterministic=True, n_trials=4, n_workers=1)
+    scenario = Scenario(bo.cs, deterministic=True, n_trials=4, n_workers=max(1,os.cpu_count()-4))
     smac = BlackBoxFacade(scenario, bo.black_box, overwrite=True, dask_client=None)
     incumbent = smac.optimize()
     print(incumbent)
