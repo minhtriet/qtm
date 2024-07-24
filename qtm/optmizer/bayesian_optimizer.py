@@ -34,7 +34,7 @@ class BayesianOptimizer:
         new_coords = ht.mass_transform(self.reaction.react_symbols,
                                        self.reaction.react_coords,
                                        params)
-        H, _ = self.reaction.build_hamiltonian(new_coords)
+        H, _ = self.reaction.build_hamiltonian(self.reaction.fix_coords + new_coords)
         # fixme now using eigen values, but later use theta for Double/Single excitation
         value, state = np.linalg.eig(qml.matrix(H))
         return value

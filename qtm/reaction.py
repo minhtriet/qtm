@@ -2,6 +2,7 @@ import os
 from multiprocessing import get_context
 from typing import Optional
 
+import numpy as np
 from pennylane import qchem
 
 
@@ -37,13 +38,13 @@ class Reaction:
         if coordinates is None:  # this is to for cases where optimizing a single atom
             return None, None
         return qchem.molecular_hamiltonian(
-            symbols=self.symbols,
+            list(self.symbols),
+            np.array(coordinates),
             charge=self.charge,
             mult=self.mult,
             active_electrons=self.active_electrons,
             active_orbitals=self.active_orbitals,
             method="openfermion",
-            coordinates=coordinates,
         )
 
     def parallel_build_hamiltonian(self, coordinates_list):

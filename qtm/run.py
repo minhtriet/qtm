@@ -50,9 +50,9 @@ if __name__ == "__main__":
         fix_symbols=step_config["fixed"]["symbols"],
         react_symbols=step_config["react"]["symbols"],
         fix_coords=step_config["fixed"]["coords"],
-        react_coords=step_config["fixed"]["coords"],
-        charge=step_config.get("charge"),
-        mult=step_config.get("mult"),
+        react_coords=step_config["react"]["coords"],
+        charge=step_config["config"].get("charge"),
+        mult=step_config["config"].get("mult"),
         active_electrons=step_config.get("active_electrons"),
         active_orbitals=step_config.get("active_orbitals"),
     )

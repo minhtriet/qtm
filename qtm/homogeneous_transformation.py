@@ -53,6 +53,7 @@ class HomogenousTransformation:
     @staticmethod
     def mass_transform(molecules, coordinates, transform_params):
         """
+        This is used in the bayesian optimization
         :param molecules:
         :param coordinates:
         :param transform_params:
@@ -60,12 +61,17 @@ class HomogenousTransformation:
         """
         logging.info(f"mass_transform {transform_params}")
         new_coords = []
+        start_coord = 0
         for i, molecule in enumerate(molecules):
-            new_coords.append(
-                HomogenousTransformation.transform(
-                    molecules, i, coordinates, *transform_params[i * 6 : (i + 1) * 6]
+            len_coords = HomogenousTransformation._symbol_to_length_coords(molecule)
+            new_coords.extend(
+                HomogenousTransformation._transform_a_molecule(
+                    coordinates[start_coord: start_coord + len_coords],
+                    *transform_params[i * 6: (i + 1) * 6]
                 )
             )
+            start_coord += len_coords
+        assert len(new_coords) == len(coordinates)
         return new_coords
 
     @staticmethod
