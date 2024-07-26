@@ -140,7 +140,9 @@ if __name__ == "__main__":
         [0, 0, 0, 0, 0, delta_coord],
         [0, 0, 0, 0, 0, -delta_coord],
     ]
-    molecules = chem_config.step2
+    molecules = [chem_config.NH2, chem_config._N1_step1, chem_config._N2_step1, chem_config._N3_step1]
+    molecules = [chem_config._N1_step1, chem_config._N2_step1]
+    # molecules = chem_config.step2
     adsorbate_coords = reduce(lambda x,y: x+y, [x['coords'] for x in molecules])
     symbols = reduce(lambda x, y: x+y, [x['symbols'] for x in molecules])
 
