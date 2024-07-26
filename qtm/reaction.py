@@ -44,7 +44,7 @@ class Reaction:
             mult=self.mult,
             active_electrons=self.active_electrons,
             active_orbitals=self.active_orbitals,
-            method="openfermion",
+            method="pyscf",
         )
 
     def parallel_build_hamiltonian(self, coordinates_list):
