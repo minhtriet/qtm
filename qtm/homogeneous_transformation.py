@@ -86,7 +86,6 @@ class HomogenousTransformation:
         t_x,
         t_y,
         t_z,
-        rotation_origin=(0, 0, 0),
         pad=True,
     ):
         """
@@ -122,7 +121,7 @@ class HomogenousTransformation:
             t_x,
             t_y,
             t_z,
-            rotation_origin
+            coordinates[prefix:prefix + 3]
         )
         if pad:
             result = np.hstack(
