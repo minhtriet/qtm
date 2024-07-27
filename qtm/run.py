@@ -53,8 +53,8 @@ if __name__ == "__main__":
         react_coords=step_config["react"]["coords"],
         charge=step_config["config"].get("charge"),
         mult=step_config["config"].get("mult"),
-        active_electrons=step_config.get("active_electrons"),
-        active_orbitals=step_config.get("active_orbitals"),
+        active_electrons=step_config["config"].get("active_electrons"),
+        active_orbitals=step_config["config"].get("active_orbitals"),
     )
 
     optimizable_molecules = step_config["react"]["symbols"]
