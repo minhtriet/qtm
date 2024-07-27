@@ -36,8 +36,8 @@ steps:
       coords: [0.9736172479872496, 0.997766725361389, 1.999355164100252,
                1.990546389090705, 4.033434090868389, 1.9910850115679026]
     config:
-      active_electrons: 5   # 5 of NH2, 3 of N, 2 of H
-      active_orbitals: 5    # 5 of NH2, 3 of N, 2 of H
+      active_electrons: 8   # 5 of NH2, 3 of N, 2 of H
+      active_orbitals: 8    # 5 of NH2, 3 of N, 2 of H
       charge: 0
       basis: "STO-3G"
       optimization: "bo"

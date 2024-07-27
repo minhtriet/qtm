@@ -42,4 +42,4 @@ class BayesianOptimizer:
         logging.info("Finish building the H")
         # fixme now using eigen values, but later use theta for Double/Single excitation
         value, state = np.linalg.eig(qml.matrix(H))
-        return value
+        return min(np.real(value))
