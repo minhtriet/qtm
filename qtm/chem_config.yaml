@@ -27,7 +27,7 @@ steps:
       active_orbitals: 1
       charge: 1
       basis: "STO-3G"
-  two:
+  two:  # 16 GB 2 CPU / workers
     fixed:
       symbols: ${concat:${catalyst.symbols}, ${steps.one.react.symbols}}
       coords: ${concat:${catalyst.coords}, ${last_element:${load_json:artifact,step1,coords.txt}}}

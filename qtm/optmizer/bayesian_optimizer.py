@@ -39,7 +39,8 @@ class BayesianOptimizer:
                                        params)
         logging.info("Start building the H")
         H, _ = self.reaction.build_hamiltonian(self.reaction.fix_coords + new_coords)
-        logging.info("Finish building the H")
         # fixme now using eigen values, but later use theta for Double/Single excitation
         value, state = np.linalg.eig(qml.matrix(H))
-        return min(np.real(value))
+        return_value = min(np.real(value))
+        logging.info(f"Finish building the H. coords: {list(self.reaction.react_coords)}, {return_value}")
+        retur return_valuen
