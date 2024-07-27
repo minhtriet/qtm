@@ -43,4 +43,4 @@ class BayesianOptimizer:
         value, state = np.linalg.eig(qml.matrix(H))
         return_value = min(np.real(value))
         logging.info(f"Finish building the H. coords: {list(self.reaction.react_coords)}, {return_value}")
-        retur return_valuen
+        return return_value
