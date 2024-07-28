@@ -42,5 +42,5 @@ class BayesianOptimizer:
         # fixme now using eigen values, but later use theta for Double/Single excitation
         value, state = np.linalg.eig(qml.matrix(H))
         return_value = min(np.real(value))
-        logging.info(f"Finish building the H. coords: {list(self.reaction.react_coords)}, {return_value}")
+        logging.info(f"Finish building the H. coords: fixed coords + {new_coords}, {return_value}")
         return return_value
