@@ -75,9 +75,14 @@ if __name__ == "__main__":
         "theta_z": angle_bound,
     }
 
+    if os.path.exists("coords.txt"):
+        os.remove("coords.txt")
+
+    if os.path.exists("energies.txt"):
+        os.remove("energies.txt")
 
     bo = BayesianOptimizer(bound_config, reaction)
-    scenario = Scenario(bo.cs, deterministic=True, n_trials=100, n_workers=1)
+    scenario = Scenario(bo.cs, deterministic=True, n_trials=50, n_workers=3)
     smac = BlackBoxFacade(scenario, bo.black_box, overwrite=True, dask_client=None)
     incumbent = smac.optimize()
     print(incumbent)

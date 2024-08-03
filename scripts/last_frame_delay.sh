@@ -9,18 +9,15 @@ output_gif=$3
 temp_dir=$(mktemp -d)
 
 # Extract frames from the input GIF
-convert +adjoin $input_gif $temp_dir/frame_%04d.gif
+magick +adjoin $input_gif $temp_dir/frame_%04d.gif
 
 # Get the total number of frames
 total_frames=$(ls $temp_dir | wc -l)
 last_frame_index=$(($total_frames - 1))
 last_frame=$(printf "$temp_dir/frame_%04d.gif" $last_frame_index)
 
-# Modify the delay of the last frame
-convert $last_frame -delay $delay $last_frame
-
 # Reassemble the frames into the output GIF
-convert -delay 10 $temp_dir/frame_*.gif -loop 0 $output_gif
+magick -delay 10 $temp_dir/frame_*.gif -delay $delay $last_frame $output_gif
 
 # Clean up temporary directory
 rm -rf $temp_dir

@@ -38,9 +38,13 @@ class BayesianOptimizer:
                                        self.reaction.react_coords,
                                        params)
         logging.info("Start building the H")
+        logging.info(f"Coords for H: {self.reaction.fix_coords + new_coords}")
         H, _ = self.reaction.build_hamiltonian(self.reaction.fix_coords + new_coords)
         # fixme now using eigen values, but later use theta for Double/Single excitation
         value, state = np.linalg.eig(qml.matrix(H))
         return_value = min(np.real(value))
-        logging.info(f"Finish building the H. coords: fixed coords + {new_coords}, {return_value}")
+        with open("coords.txt", "a") as f:
+            f.write(new_coords)
+        with open("energies.txt", "a") as f:
+            f.write(return_value)
         return return_value
