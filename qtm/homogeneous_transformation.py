@@ -1,5 +1,5 @@
-import re
 import logging
+import re
 
 logging.getLogger().setLevel(logging.INFO)
 import numpy as np
@@ -65,13 +65,13 @@ class HomogenousTransformation:
         for i, molecule in enumerate(molecules):
             len_coords = HomogenousTransformation._symbol_to_length_coords(molecule)
             transformed = HomogenousTransformation._transform_a_molecule(
-                    coordinates[start_coord: start_coord + len_coords],
-                    *transform_params[i * 6: (i + 1) * 6]
-                )
+                coordinates[start_coord : start_coord + len_coords],
+                *transform_params[i * 6 : (i + 1) * 6],
+            )
             # minus the initial coordinates here, because _transform_a_molecule
             # does a translation by (x y z), instead set of setting the coords to (x y z)
             # which is how the bounding is working
-            transformed -= coordinates[start_coord: start_coord + len_coords]
+            transformed -= coordinates[start_coord : start_coord + len_coords]
             new_coords.extend(transformed)
             start_coord += len_coords
         assert len(new_coords) == len(coordinates)
@@ -103,9 +103,7 @@ class HomogenousTransformation:
         if (len(molecules[order]) == 1) and ((t_x, t_y, t_z) == (0, 0, 0)):
             return None
         # concat all prefix/suffix symbols, which are all the molecules / atom behind / after :param: order
-        prefix_symbols = (
-            np.hstack([_ for _ in molecules[:order]]) if order > 0 else ""
-        )
+        prefix_symbols = np.hstack([_ for _ in molecules[:order]]) if order > 0 else ""
         suffix_symbols = (
             np.hstack([_ for _ in molecules[order + 1 :]])
             if order < len(molecules) - 1
