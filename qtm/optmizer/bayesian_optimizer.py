@@ -49,6 +49,6 @@ class BayesianOptimizer:
             f.write(json.dumps(new_coords))
             f.write("\n")
         with open("energies.txt", "a") as f:
-            f.write(return_value)
+            f.write(str(return_value))
             f.write("\n")
         return return_value
