@@ -71,7 +71,7 @@ class HomogenousTransformation:
             # minus the initial coordinates here, because _transform_a_molecule
             # does a translation by (x y z), instead set of setting the coords to (x y z)
             # which is how the bounding is working
-            transformed -= coordinates[start_coord: start_coord + len_coords],
+            transformed -= coordinates[start_coord: start_coord + len_coords]
             new_coords.extend(transformed)
             start_coord += len_coords
         assert len(new_coords) == len(coordinates)

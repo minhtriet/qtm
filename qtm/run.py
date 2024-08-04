@@ -67,12 +67,12 @@ if __name__ == "__main__":
     angle_bound = (-np.pi, np.pi)
 
     bound_config = {
-        "x": x_bound,
-        "y": y_bound,
-        "z": z_bound,
         "theta_x": angle_bound,
         "theta_y": angle_bound,
         "theta_z": angle_bound,
+        "x": x_bound,
+        "y": y_bound,
+        "z": z_bound,
     }
 
     if os.path.exists("coords.txt"):
@@ -82,7 +82,7 @@ if __name__ == "__main__":
         os.remove("energies.txt")
 
     bo = BayesianOptimizer(bound_config, reaction)
-    scenario = Scenario(bo.cs, deterministic=True, n_trials=50, n_workers=3)
+    scenario = Scenario(bo.cs, deterministic=True, n_trials=60, n_workers=3)
     smac = BlackBoxFacade(scenario, bo.black_box, overwrite=True, dask_client=None)
     incumbent = smac.optimize()
     print(incumbent)
