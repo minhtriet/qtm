@@ -84,4 +84,14 @@ if __name__ == "__main__":
     scenario = Scenario(bo.cs, deterministic=True, n_trials=60, n_workers=3)
     smac = BlackBoxFacade(scenario, bo.black_box, overwrite=True, dask_client=None)
     incumbent = smac.optimize()
-    print(incumbent)
+
+    smac.runhistory.save("records.json")
+
+    # Get cost of default configuration
+    with open("energy_record.txt", 'w') as f:
+        default_cost = smac.validate(bo.cs.get_default_configuration())
+        f.write(f"Default energy: {default_cost}")
+
+        # Let's calculate the cost of the incumbent
+        incumbent_cost = smac.validate(incumbent)
+        f.write(f"Minimum energy: {incumbent_cost}")
