@@ -81,7 +81,7 @@ if __name__ == "__main__":
         os.remove("energies.txt")
 
     bo = BayesianOptimizer(bound_config, reaction)
-    scenario = Scenario(bo.cs, deterministic=True, n_trials=60, n_workers=3)
+    scenario = Scenario(bo.cs, deterministic=True, n_trials=ml_conf["max_iterations"], n_workers=3)
     smac = BlackBoxFacade(scenario, bo.black_box, overwrite=True, dask_client=None)
     incumbent = smac.optimize()
 
