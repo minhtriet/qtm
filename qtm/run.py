@@ -60,8 +60,8 @@ if __name__ == "__main__":
     optimizable_coords = step_config["react"]["coords"]
 
     # define boundaries for bayesian optimization
-    x_bound = add_tuple(min_max(chem_conf["catalyst"]["coords"][::3]), (-1, 1))
-    y_bound = add_tuple(min_max(chem_conf["catalyst"]["coords"][1::3]), (-1, 1))
+    x_bound = add_tuple(min_max(chem_conf["catalyst"]["coords"][::3]), (-ml_conf["bound_margin"], ml_conf["bound_margin"]))
+    y_bound = add_tuple(min_max(chem_conf["catalyst"]["coords"][1::3]), (-ml_conf["bound_margin"], ml_conf["bound_margin"]))
     z_bound = (2.0, 3.0)
     angle_bound = (-np.pi, np.pi)
 
