@@ -1,4 +1,4 @@
-# Quantum simulation for transition metal
+# Quantum simulation for transitional metal
 
 ## How to run
 1. Run `poetry install`
