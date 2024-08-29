@@ -2,7 +2,7 @@
 
 ## How to run
 1. Run `poetry install`
-2. `python qtm/run.py`
+2. `python qtm/run.py`, the `step_to_run` parameter in `chem_conf.yaml` below will be executed
 
 ## How to customize
 We have two main configurations files. `chem_conf.yaml` is for the chemical related configuration and `ml_conf.yaml` is for the machine learning related
