@@ -1,5 +1,7 @@
 # Quantum simulation for transitional metal
 
+This project aims to simulate the Haber-Bosch process using quantum computing techniques. It focuses on modeling chemical reactions, particularly the synthesis of ammonia (NH3) using Fe211 as a catalyst.
+
 ## How to run
 1. Run `poetry install`
 2. `python qtm/run.py`, the `step_to_run` parameter in `chem_conf.yaml` below will be executed
